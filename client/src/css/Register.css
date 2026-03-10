@@ -1,0 +1,283 @@
+@import url("https://fonts.googleapis.com/css2?family=Anek+Tamil:wght@100..800&family=Funnel+Display:wght@300..800&family=Montserrat:ital,wght@0,100..900;1,100..900&family=Poppins:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,100;1,200;1,300;1,400;1,500;1,600;1,700;1,800;1,900&display=swap");
+
+:root {
+  --bg-primary: #fffff3;
+  --border-color: #000000;
+}
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  overflow-x: hidden;
+}
+
+.register {
+  min-height: calc(100vh - 80px);
+  background: var(--bg-primary);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: "Montserrat", sans-serif;
+  position: relative;
+  overflow: hidden;
+}
+
+.register::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 1px;
+  background: var(--border-color);
+}
+
+.register::after {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  right: 0;
+  width: 30%;
+  height: 30%;
+  background: repeating-linear-gradient(
+    45deg,
+    transparent,
+    transparent 10px,
+    rgba(255, 225, 90, 0.1) 10px,
+    rgba(255, 225, 90, 0.1) 20px
+  );
+  z-index: 0;
+}
+
+.register-container {
+  background: var(--bg-primary);
+  border: 2px solid var(--border-color);
+  padding: 60px 80px;
+  max-width: 500px;
+  width: 90%;
+  position: relative;
+  z-index: 1;
+  box-shadow: 8px 8px 0 rgba(0, 0, 0, 0.1);
+  transition: all 0.3s ease;
+}
+
+.register-container:hover {
+  transform: translate(-2px, -2px);
+  box-shadow: 12px 12px 0 rgba(0, 0, 0, 0.1);
+}
+
+.register-container h1 {
+  font-family: "Funnel Display", sans-serif;
+  font-size: 48px;
+  text-transform: uppercase;
+  margin-bottom: 40px;
+  text-align: center;
+  letter-spacing: -1px;
+  position: relative;
+  display: inline-block;
+  left: 50%;
+  transform: translateX(-50%);
+  white-space: nowrap;
+}
+
+.register-container h1::after {
+  content: '';
+  position: absolute;
+  bottom: -10px;
+  left: 0;
+  width: 100%;
+  height: 2px;
+  background: var(--border-color);
+  transform: scaleX(0.8);
+  transition: transform 0.3s ease;
+}
+
+.register-container:hover h1::after {
+  transform: scaleX(1);
+}
+
+.register-container input {
+  width: 100%;
+  padding: 15px 20px;
+  margin-bottom: 20px;
+  border: 2px solid var(--border-color);
+  background: transparent;
+  font-family: "Montserrat", sans-serif;
+  font-size: 16px;
+  transition: all 0.3s ease;
+  outline: none;
+}
+
+.register-container input:focus {
+  transform: translate(-2px, -2px);
+  box-shadow: 4px 4px 0 rgba(0, 0, 0, 0.2);
+}
+
+.register-container input::placeholder {
+  color: #999;
+  text-transform: uppercase;
+  font-size: 14px;
+  letter-spacing: 0.5px;
+}
+
+.register-container input[type="text"] {
+  border-color: #ffe15a;
+}
+
+.register-container input[type="text"]:focus {
+  box-shadow: 4px 4px 0 rgba(255, 225, 90, 0.4);
+}
+
+.register-container button {
+  width: 100%;
+  padding: 15px 20px;
+  margin: 30px 0 30px;
+  background: transparent;
+  border: 2px solid var(--border-color);
+  font-family: "Montserrat", sans-serif;
+  font-size: 18px;
+  text-transform: uppercase;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  cursor: pointer;
+  position: relative;
+  overflow: hidden;
+  transition: all 0.3s ease;
+  z-index: 1;
+}
+
+.register-container button::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: black;
+  transition: left 0.3s ease;
+  z-index: -1;
+}
+
+.register-container button:hover:not(:disabled) {
+  color: white;
+}
+
+.register-container button:hover:not(:disabled)::before {
+  left: 0;
+}
+
+.register-container button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.register-container p {
+  text-align: center;
+  font-family: "Montserrat", sans-serif;
+  font-size: 16px;
+}
+
+.register-container a {
+  color: black;
+  text-decoration: none;
+  font-weight: 700;
+  position: relative;
+  padding-bottom: 2px;
+}
+
+.register-container a::after {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  width: 100%;
+  height: 2px;
+  background: black;
+  transform: scaleX(0);
+  transition: transform 0.3s ease;
+  transform-origin: right;
+}
+
+.register-container a:hover::after {
+  transform: scaleX(1);
+  transform-origin: left;
+}
+
+.register > h1 {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  font-family: "Anek Tamil", sans-serif;
+  font-size: 66px;
+  text-transform: uppercase;
+  color: black;
+  background: var(--bg-primary);
+  padding: 20px 40px;
+  border: 2px solid var(--border-color);
+  border-top: none;
+  z-index: 1000;
+  animation: slideIn 0.5s ease-out;
+}
+
+.register > p {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  font-family: "Montserrat", sans-serif;
+  font-size: 24px;
+  color: #ff4444;
+  background: var(--bg-primary);
+  padding: 20px 40px;
+  border: 2px solid #ff4444;
+  z-index: 1000;
+  animation: shake 0.5s ease-out;
+}
+
+@keyframes slideIn {
+  from {
+    opacity: 0;
+    transform: translate(-50%, -30%);
+  }
+  to {
+    opacity: 1;
+    transform: translate(-50%, -50%);
+  }
+}
+
+@keyframes shake {
+  0%, 100% {
+    transform: translate(-50%, -50%);
+  }
+  25% {
+    transform: translate(-55%, -50%);
+  }
+  75% {
+    transform: translate(-45%, -50%);
+  }
+}
+
+@media (max-width: 768px) {
+  .register-container {
+    padding: 40px 30px;
+  }
+  
+  .register-container h1 {
+    font-size: 36px;
+  }
+  
+  .register > h1 {
+    font-size: 42px;
+    padding: 15px 30px;
+  }
+  
+  .register > p {
+    font-size: 18px;
+    padding: 15px 25px;
+  }
+}

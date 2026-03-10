@@ -1,0 +1,26 @@
+.project-page {
+  min-height: calc(100vh - 80px);
+  background: #f7f9fc;
+}
+
+.project-error {
+  min-height: calc(100vh - 80px);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  background: #f7f9fc;
+  font-family: "Montserrat", sans-serif;
+}
+
+.project-error h2 {
+  font-family: "Funnel Display", sans-serif;
+  font-size: 32px;
+  color: #172b4d;
+  margin-bottom: 12px;
+}
+
+.project-error p {
+  color: #5e6c84;
+  font-size: 16px;
+}

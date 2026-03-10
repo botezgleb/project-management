@@ -1,0 +1,342 @@
+.column {
+  min-width: 300px;
+  max-width: 300px;
+  background: var(--bg-primary);
+  border: 2px solid var(--border-color);
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  max-height: calc(100vh - 200px);
+  position: relative;
+  box-shadow: 6px 6px 0 rgba(0, 0, 0, 0.1);
+  transition: all 0.3s ease;
+}
+
+.column:hover {
+  transform: translate(-2px, -2px);
+  box-shadow: 8px 8px 0 rgba(0, 0, 0, 0.1);
+}
+
+.column::after {
+  content: '';
+  position: absolute;
+  bottom: 5px;
+  right: 5px;
+  width: 30px;
+  height: 30px;
+  background: repeating-linear-gradient(
+    45deg,
+    transparent,
+    transparent 5px,
+    rgba(255, 225, 90, 0.2) 5px,
+    rgba(255, 225, 90, 0.2) 10px
+  );
+  opacity: 0;
+  transition: opacity 0.3s ease;
+  pointer-events: none;
+}
+
+.column:hover::after {
+  opacity: 1;
+}
+
+.column-header {
+  padding-bottom: 15px;
+  margin-bottom: 15px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  border-bottom: 2px solid var(--border-color);
+  gap: 10px;
+}
+
+.column-header h3 {
+  font-family: "Funnel Display", sans-serif;
+  font-size: 20px;
+  text-transform: uppercase;
+  letter-spacing: -0.3px;
+  color: black;
+  margin: 0;
+  flex: 1;
+  cursor: pointer;
+  padding: 5px;
+  transition: all 0.2s ease;
+  word-break: break-word;
+}
+
+.column-header h3:hover {
+  background: rgba(0, 0, 0, 0.05);
+}
+
+.column-header input {
+  flex: 1;
+  padding: 8px 10px;
+  border: 2px solid var(--border-color);
+  background: transparent;
+  font-family: "Montserrat", sans-serif;
+  font-size: 16px;
+  font-weight: 600;
+  outline: none;
+  transition: all 0.3s ease;
+}
+
+.column-header input:focus {
+  transform: translate(-2px, -2px);
+  box-shadow: 4px 4px 0 rgba(0, 0, 0, 0.1);
+}
+
+.delete-column-btn {
+  width: 30px;
+  height: 30px;
+  background: transparent;
+  border: 2px solid var(--border-color);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 18px;
+  transition: all 0.3s ease;
+  position: relative;
+  overflow: hidden;
+  color: black;
+  flex-shrink: 0;
+}
+
+.delete-column-btn::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: #ff4444;
+  transition: left 0.3s ease;
+  z-index: -1;
+}
+
+.delete-column-btn:hover {
+  color: white;
+  border-color: #ff4444;
+}
+
+.delete-column-btn:hover::before {
+  left: 0;
+}
+
+.tasks {
+  flex: 1;
+  overflow-y: auto;
+  min-height: 100px;
+  padding-right: 5px;
+  margin-bottom: 15px;
+}
+
+.tasks::-webkit-scrollbar {
+  width: 6px;
+}
+
+.tasks::-webkit-scrollbar-track {
+  background: #e1e1d6;
+  border: 1px solid var(--border-color);
+}
+
+.tasks::-webkit-scrollbar-thumb {
+  background: var(--border-color);
+  border: 1px solid var(--border-color);
+}
+
+.add-task-btn {
+  width: 100%;
+  padding: 12px;
+  background: transparent;
+  border: 2px solid var(--border-color);
+  font-family: "Montserrat", sans-serif;
+  font-size: 14px;
+  text-transform: uppercase;
+  font-weight: 600;
+  letter-spacing: 0.5px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  transition: all 0.3s ease;
+  position: relative;
+  overflow: hidden;
+  margin-top: auto;
+}
+
+.add-task-btn::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: black;
+  transition: left 0.3s ease;
+  z-index: -1;
+}
+
+.add-task-btn:hover {
+  color: white;
+}
+
+.add-task-btn:hover::before {
+  left: 0;
+}
+
+.add-task-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.column-header {
+  padding-bottom: 15px;
+  margin-bottom: 15px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  border-bottom: 2px solid var(--border-color);
+  gap: 10px;
+  position: relative;
+}
+
+.column-header h3 {
+  font-family: "Funnel Display", sans-serif;
+  font-size: 20px;
+  text-transform: uppercase;
+  letter-spacing: -0.3px;
+  color: black;
+  margin: 0;
+  flex: 1;
+  word-break: break-word;
+  cursor: pointer;
+  padding: 5px;
+  transition: all 0.2s ease;
+}
+
+.column-header h3:hover {
+  background: rgba(0, 0, 0, 0.05);
+}
+
+.column-edit-input {
+  flex: 1;
+  padding: 8px 12px;
+  border: 2px solid var(--border-color);
+  background: var(--bg-primary);
+  font-family: "Montserrat", sans-serif;
+  font-size: 16px;
+  font-weight: 500;
+  outline: none;
+  transition: all 0.3s ease;
+}
+
+.column-edit-input:focus {
+  transform: translate(-2px, -2px);
+  box-shadow: 4px 4px 0 rgba(0, 0, 0, 0.1);
+}
+
+.column-actions {
+  display: flex;
+  gap: 8px;
+  opacity: 0;
+  transition: opacity 0.3s ease;
+}
+
+.column:hover .column-actions {
+  opacity: 1;
+}
+
+.edit-column-btn,
+.delete-column-btn {
+  width: 32px;
+  height: 32px;
+  border: 2px solid var(--border-color);
+  background: var(--bg-primary);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 16px;
+  transition: all 0.3s ease;
+  position: relative;
+  overflow: hidden;
+  box-shadow: 2px 2px 0 rgba(0, 0, 0, 0.1);
+  color: black;
+}
+
+.edit-column-btn::before,
+.delete-column-btn::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: black;
+  transition: left 0.3s ease;
+  z-index: -1;
+}
+
+.edit-column-btn:hover,
+.delete-column-btn:hover {
+  color: white;
+  transform: translate(-2px, -2px);
+  box-shadow: 4px 4px 0 rgba(0, 0, 0, 0.1);
+}
+
+.edit-column-btn:hover::before {
+  left: 0;
+  background: #000000;
+}
+
+.delete-column-btn:hover::before {
+  left: 0;
+  background: #ff4444;
+}
+
+.delete-column-btn:hover {
+  border-color: #ff4444;
+}
+
+@media (max-width: 768px) {
+  .column-actions {
+    opacity: 1;
+  }
+
+  .edit-column-btn,
+  .delete-column-btn {
+    width: 28px;
+    height: 28px;
+    font-size: 14px;
+  }
+
+  .column-edit-input {
+    font-size: 14px;
+    padding: 6px 10px;
+  }
+}
+
+@media (max-width: 768px) {
+  .column {
+    min-width: 260px;
+    max-width: 260px;
+    padding: 15px;
+  }
+
+  .column-header h3 {
+    font-size: 18px;
+  }
+
+  .delete-column-btn {
+    width: 28px;
+    height: 28px;
+    font-size: 16px;
+  }
+
+  .add-task-btn {
+    padding: 10px;
+    font-size: 13px;
+  }
+}
