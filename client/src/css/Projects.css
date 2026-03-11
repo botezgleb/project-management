@@ -20,7 +20,6 @@
   top: 0;
   left: 0;
   right: 0;
-  height: 1px;
   background: var(--border-color);
 }
 
@@ -233,10 +232,13 @@
   z-index: -1;
 }
 
-.project-card:hover .owner-badge,
-.project-card:hover .member-badge {
+.project-card:hover .owner-badge {
   color: white;
   transform: translateY(30px);
+}
+
+.project-card:hover .member-badge {
+  color: white;
 }
 
 .project-card:hover .owner-badge::before,
@@ -248,7 +250,7 @@
   color: #333;
   font-size: 14px;
   line-height: 1.6;
-  margin: 0 0 20px 0;
+  margin: 20px 0 20px 0;
   flex: 1;
   font-family: "Montserrat", sans-serif;
   position: relative;

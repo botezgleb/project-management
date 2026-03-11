@@ -197,14 +197,9 @@
   white-space: normal;
   overflow: visible;
   text-overflow: clip;
-  cursor: pointer;
   padding: 3px 5px;
   transition: all 0.2s ease;
   line-height: 1.4;
-}
-
-.column-header h3:hover {
-  background: rgba(0, 0, 0, 0.05);
 }
 
 .column-edit-input {

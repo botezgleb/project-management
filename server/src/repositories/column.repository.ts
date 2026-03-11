@@ -117,6 +117,11 @@ export const reorderColumns = async (
       });
     }
 
-    return { success: true };
+    const updatedColumns = await tx.column.findMany({
+      where: { projectId },
+      orderBy: { position: "asc" },
+    });
+
+    return updatedColumns;
   });
 };

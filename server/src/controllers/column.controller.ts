@@ -78,6 +78,7 @@ export const reorderColumnsController = async (req: Request, res: Response) => {
 
     return res.status(200).json(result);
   } catch (error) {
+    console.error("Reorder columns controller error:", error);
     return res.status(400).json({ message: (error as Error).message });
   }
 };

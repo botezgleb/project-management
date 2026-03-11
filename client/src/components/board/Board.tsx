@@ -1,13 +1,12 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useCallback } from "react";
 import {
   DndContext,
   closestCenter,
   PointerSensor,
   useSensor,
   useSensors,
-  type DragEndEvent,
-  type DragStartEvent,
 } from "@dnd-kit/core";
+import type { DragEndEvent, DragStartEvent } from "@dnd-kit/core";
 import {
   arrayMove,
   SortableContext,
@@ -23,6 +22,7 @@ import {
 } from "../../services/api/columns.api";
 import {
   deleteTaskApi,
+  getTasksApi,
   updateTaskApi,
   reorderTaskApi,
 } from "../../services/api/tasks.api";
@@ -56,15 +56,30 @@ export default function Board({ projectId }: Props) {
     }),
   );
 
-  const loadColumns = async () => {
+  const loadColumns = useCallback(async () => {
     try {
       setLoading(true);
       const res = await getColumnsApi(projectId);
       const columnsData = Array.isArray(res) ? res : res.data || [];
-      const columnsWithTasks = columnsData.map((col: Column) => ({
-        ...col,
-        tasks: [],
-      }));
+
+      const columnsWithTasks = await Promise.all(
+        columnsData.map(async (col: Column) => {
+          try {
+            const tasksRes = await getTasksApi(projectId, col.id);
+            const tasks = Array.isArray(tasksRes)
+              ? tasksRes
+              : tasksRes.data || [];
+            return {
+              ...col,
+              tasks: tasks.sort((a: Task, b: Task) => a.position - b.position),
+            };
+          } catch (error) {
+            console.error(`Failed to load tasks for column ${col.id}:`, error);
+            return { ...col, tasks: [] };
+          }
+        }),
+      );
+
       setColumns(columnsWithTasks);
       setError(null);
     } catch (error) {
@@ -74,11 +89,11 @@ export default function Board({ projectId }: Props) {
     } finally {
       setLoading(false);
     }
-  };
+  }, [projectId]);
 
   useEffect(() => {
     loadColumns();
-  }, [projectId]);
+  }, [loadColumns]);
 
   useEffect(() => {
     socket.emit("join-project", projectId);
@@ -89,7 +104,8 @@ export default function Board({ projectId }: Props) {
   }, [projectId]);
 
   useEffect(() => {
-    socket.on("task-created", (task: Task) => {
+    const handleTaskCreated = (task: Task) => {
+      console.log("SOCKET: task-created received", task);
       setColumns((prev) =>
         prev.map((col) =>
           col.id === task.columnId
@@ -97,9 +113,10 @@ export default function Board({ projectId }: Props) {
             : col,
         ),
       );
-    });
+    };
 
-    socket.on("task-updated", (task: Task) => {
+    const handleTaskUpdated = (task: Task) => {
+      console.log("SOCKET: task-updated received", task);
       setColumns((prev) =>
         prev.map((col) =>
           col.id === task.columnId
@@ -110,9 +127,16 @@ export default function Board({ projectId }: Props) {
             : col,
         ),
       );
-    });
+    };
 
-    socket.on("task-deleted", ({ columnId, taskId }: { columnId: number; taskId: number }) => {
+    const handleTaskDeleted = ({
+      columnId,
+      taskId,
+    }: {
+      columnId: number;
+      taskId: number;
+    }) => {
+      console.log("SOCKET: task-deleted received", { columnId, taskId });
       setColumns((prev) =>
         prev.map((col) =>
           col.id === columnId
@@ -123,19 +147,119 @@ export default function Board({ projectId }: Props) {
             : col,
         ),
       );
-    });
+    };
 
-    socket.on("tasks-reordered", ({ columnId, tasks }: { columnId: number; tasks: Task[] }) => {
+    const handleTasksReordered = ({
+      columnId,
+      tasks,
+    }: {
+      columnId: number;
+      tasks: Task[];
+    }) => {
+      console.log("SOCKET: tasks-reordered received", { columnId, tasks });
       setColumns((prev) =>
         prev.map((col) => (col.id === columnId ? { ...col, tasks } : col)),
       );
-    });
+    };
+
+    socket.on("task-created", handleTaskCreated);
+    socket.on("task-updated", handleTaskUpdated);
+    socket.on("task-deleted", handleTaskDeleted);
+    socket.on("tasks-reordered", handleTasksReordered);
 
     return () => {
-      socket.off("task-created");
-      socket.off("task-updated");
-      socket.off("task-deleted");
-      socket.off("tasks-reordered");
+      socket.off("task-created", handleTaskCreated);
+      socket.off("task-updated", handleTaskUpdated);
+      socket.off("task-deleted", handleTaskDeleted);
+      socket.off("tasks-reordered", handleTasksReordered);
+    };
+  }, []);
+
+  useEffect(() => {
+    const handleColumnCreated = (column: Column) => {
+      console.log("SOCKET: column-created received", column);
+      setColumns((prev) => [...prev, { ...column, tasks: [] }]);
+    };
+
+    const handleColumnUpdated = (column: Column) => {
+      console.log("SOCKET: column-updated received", column);
+      setColumns((prev) =>
+        prev.map((col) =>
+          col.id === column.id ? { ...col, name: column.name } : col,
+        ),
+      );
+    };
+
+    const handleColumnDeleted = (deletedColumn: { id: number }) => {
+      console.log("SOCKET: column-deleted received", deletedColumn);
+      setColumns((prev) => prev.filter((col) => col.id !== deletedColumn.id));
+    };
+
+    const handleColumnsReordered = (reorderedColumns: Column[]) => {
+      console.log("SOCKET: columns-reordered received", reorderedColumns);
+
+      if (!reorderedColumns || !Array.isArray(reorderedColumns)) {
+        console.error("Invalid reordered columns data:", reorderedColumns);
+        return;
+      }
+
+      setColumns((prev) => {
+        console.log("Previous columns:", prev);
+
+        const tasksMap = new Map(prev.map((col) => [col.id, col.tasks]));
+
+        const updatedColumns: ColumnWithTasks[] = reorderedColumns
+          .map((col) => {
+            if (!col || typeof col.id === "undefined") {
+              console.error("Invalid column in reordered data:", col);
+              return null;
+            }
+            return {
+              ...col,
+              tasks: tasksMap.get(col.id) || [],
+            };
+          })
+          .filter((col): col is ColumnWithTasks => col !== null);
+
+        console.log("Updated columns:", updatedColumns);
+        return updatedColumns;
+      });
+    };
+
+    socket.on("column-created", handleColumnCreated);
+    socket.on("column-updated", handleColumnUpdated);
+    socket.on("column-deleted", handleColumnDeleted);
+    socket.on("columns-reordered", handleColumnsReordered);
+
+    return () => {
+      socket.off("column-created", handleColumnCreated);
+      socket.off("column-updated", handleColumnUpdated);
+      socket.off("column-deleted", handleColumnDeleted);
+      socket.off("columns-reordered", handleColumnsReordered);
+    };
+  }, []);
+
+  useEffect(() => {
+    const handleConnect = () => {
+      console.log("Socket connected:", socket.id);
+    };
+
+    const handleDisconnect = () => {
+      console.log("Socket disconnected");
+    };
+
+    const handleConnectError = (error: Error) => {
+      console.error("Socket connection error:", error);
+    };
+
+    socket.on("connect", handleConnect);
+    socket.on("disconnect", handleDisconnect);
+    socket.on("connect_error", handleConnectError);
+
+    return () => {
+      socket.off("connect", handleConnect);
+      socket.off("disconnect", handleDisconnect);
+      socket.off("connect_error", handleConnectError);
     };
   }, []);
 
@@ -187,10 +311,7 @@ export default function Board({ projectId }: Props) {
     }
   };
 
-  const handleTaskOrderChange = (
-    columnId: number,
-    updatedTasks: Task[],
-  ) => {
+  const handleTaskOrderChange = (columnId: number, updatedTasks: Task[]) => {
     setColumns((prev) =>
       prev.map((col) =>
         col.id === columnId ? { ...col, tasks: updatedTasks } : col,
@@ -320,9 +441,9 @@ export default function Board({ projectId }: Props) {
                   type="text"
                   value={newColumnName}
                   onChange={(e) => setNewColumnName(e.target.value)}
-                  onKeyDown={(e) => {
+                  onKeyDown={(e: React.KeyboardEvent) => {
                     if (e.key === "Enter") handleAddColumn();
-                    if (e.key === "Escape") handleCancelAdd(e as any);
+                    if (e.key === "Escape") handleCancelAdd(e);
                   }}
                   placeholder="Название колонки"
                   autoFocus

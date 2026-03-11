@@ -6,6 +6,7 @@ import {
   deleteColumn,
   reorderColumns,
 } from "../repositories/column.repository";
+import { getIO } from "../socket/socket";
 
 export const createColumnService = async (projectId: number, name: string) => {
   const maxPosition = await getMaxColumnPosition(projectId);
@@ -17,6 +18,10 @@ export const createColumnService = async (projectId: number, name: string) => {
   };
 
   const newColumn = await createColumn(data);
+  
+  const io = getIO();
+
+  io.to(`project-${projectId}`).emit("column-created", newColumn);
 
   return newColumn;
 };
@@ -32,7 +37,13 @@ export const updateColumnService = async (
 ) => {
   const data = { name };
 
-  return await updateColumn(columnId, projectId, data);
+  const updatedColumn = await updateColumn(columnId, projectId, data);
+
+  const io = getIO();
+
+  io.to(`project-${projectId}`).emit("column-updated", updatedColumn);
+
+  return updatedColumn;
 };
 
 export const deleteColumnService = async (
@@ -40,6 +51,10 @@ export const deleteColumnService = async (
   columnId: number,
 ) => {
   const deletedColumn = await deleteColumn(columnId, projectId);
+
+  const io = getIO();
+
+  io.to(`project-${projectId}`).emit("column-deleted", deletedColumn);
 
   return deletedColumn;
 };
@@ -52,5 +67,14 @@ export const reorderColumnsService = async (
     throw new Error("Пустой список колонок");
   }
 
-  return await reorderColumns(projectId, columns);
+  console.log("Reorder columns service - input:", { projectId, columns });
+
+  const reorderedColumns = await reorderColumns(projectId, columns);
+  
+  console.log("Reorder columns service - result:", reorderedColumns);
+
+  const io = getIO();
+  io.to(`project-${projectId}`).emit("columns-reordered", reorderedColumns);
+
+  return reorderedColumns;
 };
