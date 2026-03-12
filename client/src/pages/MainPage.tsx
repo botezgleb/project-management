@@ -1,9 +1,11 @@
-import { Hero } from "../components/ui/Hero"
+import { Hero } from "../components/ui/Hero";
+import { Footer } from "../components/ui/Footer";
 
 export const MainPage = () => {
   return (
     <div>
-        <Hero />
+      <Hero />
+      <Footer />
     </div>
-  )
-}
+  );
+};

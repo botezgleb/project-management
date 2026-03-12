@@ -1,5 +1,6 @@
 import heroImage1 from "../../assets/hero-img-1.jpg";
 import heroImage2 from "../../assets/hero-img-2.jpg";
+import heroImage3 from "../../assets/hero-img-3.jpg";
 import { useNavigate } from "react-router-dom";
 
 export const Hero = () => {
@@ -59,6 +60,48 @@ export const Hero = () => {
       </div>
       <div className="start-now">
         <h1>Start now. <span>Join now</span></h1>
+      </div>
+      <div className="features">
+        <div className="features-grid">
+          <div className="features-item">
+            <h1>Все инструменты управления задачами</h1>
+          </div>
+          <div className="features-item">
+            <h3>Канбан-доски</h3>
+            <p>Визуализируйте рабочий процесс с настраиваемыми колонками и карточками</p>
+          </div>
+          <div className="features-item">
+            <h3>Командная работа</h3>
+            <p>Приглашайте участников, назначайте задачи и работайте вместе</p>
+          </div>
+          <div className="features-item">
+            <h3>Реальное время</h3>
+            <p>Мгновенная синхронизация изменений между всеми участниками</p>
+          </div>
+          <div className="features-item">
+            <button className="hero-main-btn" onClick={handleClick}>
+              <span className="top-key"></span>
+              <span className="text">К проектам</span>
+              <span className="bottom-key-1"></span>
+              <span className="bottom-key-2"></span>
+            </button>
+          </div>
+        </div>
+        <div className="features-img">
+          <img src={heroImage3} alt="" />
+        </div>
+      </div>
+      <div className="believe">
+        <div className="believe-text">
+          <h3>we believe that</h3>
+          <h1>your project will change the world for the better tomorrow</h1>
+          <button className="hero-main-btn" onClick={handleClick}>
+            <span className="top-key"></span>
+            <span className="text">К проектам</span>
+            <span className="bottom-key-1"></span>
+            <span className="bottom-key-2"></span>
+          </button>
+        </div>
       </div>
     </div>
   );
