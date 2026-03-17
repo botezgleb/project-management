@@ -1,5 +1,5 @@
 import { useParams } from "react-router-dom";
-import Board from "../components/board/Board";
+import { Board } from "../components/board/Board";
 import "../css/ProjectPage.css";
 
 export default function ProjectPage() {

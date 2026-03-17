@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useCallback } from "react";
+import React, { useEffect, useCallback, useReducer } from "react";
 import {
   DndContext,
   closestCenter,
@@ -28,37 +28,28 @@ import {
 } from "../../services/api/tasks.api";
 import type { Column } from "../../types/column";
 import type { Task } from "../../types/task";
+import { boardReducer, initialState } from "./boardReducer";
 import ColumnComponent from "./Column";
 import "../../css/Board.css";
 import { socket } from "../../socket/socket";
-
-interface ColumnWithTasks extends Column {
-  tasks: Task[];
-}
 
 interface Props {
   projectId: number;
 }
 
-export default function Board({ projectId }: Props) {
-  const [columns, setColumns] = useState<ColumnWithTasks[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
-  const [adding, setAdding] = useState(false);
-  const [newColumnName, setNewColumnName] = useState("");
-  const [activeTaskId, setActiveTaskId] = useState<number | null>(null);
+export const Board = ({ projectId }: Props) => {
+  const [state, dispatch] = useReducer(boardReducer, initialState);
+  const { columns, loading, error, adding, newColumnName, activeTaskId } = state;
 
   const columnSensors = useSensors(
     useSensor(PointerSensor, {
-      activationConstraint: {
-        distance: 8,
-      },
+      activationConstraint: { distance: 8 },
     }),
   );
 
   const loadColumns = useCallback(async () => {
     try {
-      setLoading(true);
+      dispatch({ type: "SET_LOADING", payload: true });
       const res = await getColumnsApi(projectId);
       const columnsData = Array.isArray(res) ? res : res.data || [];
 
@@ -66,9 +57,7 @@ export default function Board({ projectId }: Props) {
         columnsData.map(async (col: Column) => {
           try {
             const tasksRes = await getTasksApi(projectId, col.id);
-            const tasks = Array.isArray(tasksRes)
-              ? tasksRes
-              : tasksRes.data || [];
+            const tasks = Array.isArray(tasksRes) ? tasksRes : tasksRes.data || [];
             return {
               ...col,
               tasks: tasks.sort((a: Task, b: Task) => a.position - b.position),
@@ -80,14 +69,14 @@ export default function Board({ projectId }: Props) {
         }),
       );
 
-      setColumns(columnsWithTasks);
-      setError(null);
+      dispatch({ type: "SET_COLUMNS", payload: columnsWithTasks });
+      dispatch({ type: "SET_ERROR", payload: null });
     } catch (error) {
       console.error(error);
-      setError("Не удалось загрузить колонки");
-      setColumns([]);
+      dispatch({ type: "SET_ERROR", payload: "Не удалось загрузить колонки" });
+      dispatch({ type: "SET_COLUMNS", payload: [] });
     } finally {
-      setLoading(false);
+      dispatch({ type: "SET_LOADING", payload: false });
     }
   }, [projectId]);
 
@@ -97,7 +86,6 @@ export default function Board({ projectId }: Props) {
 
   useEffect(() => {
     socket.emit("join-project", projectId);
-
     return () => {
       socket.emit("leave-project", projectId);
     };
@@ -106,132 +94,62 @@ export default function Board({ projectId }: Props) {
   useEffect(() => {
     const handleTaskCreated = (task: Task) => {
       console.log("SOCKET: task-created received", task);
-      setColumns((prev) =>
-        prev.map((col) =>
-          col.id === task.columnId
-            ? { ...col, tasks: [...col.tasks, task] }
-            : col,
-        ),
-      );
+      dispatch({ type: "ADD_TASK", payload: { columnId: task.columnId, task } });
     };
 
     const handleTaskUpdated = (task: Task) => {
       console.log("SOCKET: task-updated received", task);
-      setColumns((prev) =>
-        prev.map((col) =>
-          col.id === task.columnId
-            ? {
-                ...col,
-                tasks: col.tasks.map((t) => (t.id === task.id ? task : t)),
-              }
-            : col,
-        ),
-      );
+      dispatch({ type: "UPDATE_TASK", payload: { columnId: task.columnId, task } });
     };
 
-    const handleTaskDeleted = ({
-      columnId,
-      taskId,
-    }: {
-      columnId: number;
-      taskId: number;
-    }) => {
+    const handleTaskDeleted = ({ columnId, taskId }: { columnId: number; taskId: number }) => {
       console.log("SOCKET: task-deleted received", { columnId, taskId });
-      setColumns((prev) =>
-        prev.map((col) =>
-          col.id === columnId
-            ? {
-                ...col,
-                tasks: col.tasks.filter((t) => t.id !== taskId),
-              }
-            : col,
-        ),
-      );
+      dispatch({ type: "DELETE_TASK", payload: { columnId, taskId } });
     };
 
-    const handleTasksReordered = ({
-      columnId,
-      tasks,
-    }: {
-      columnId: number;
-      tasks: Task[];
-    }) => {
+    const handleTasksReordered = ({ columnId, tasks }: { columnId: number; tasks: Task[] }) => {
       console.log("SOCKET: tasks-reordered received", { columnId, tasks });
-      setColumns((prev) =>
-        prev.map((col) => (col.id === columnId ? { ...col, tasks } : col)),
-      );
+      dispatch({ type: "REORDER_TASKS", payload: { columnId, tasks } });
+    };
+
+    const handleColumnCreated = (column: Column) => {
+      console.log("SOCKET: column-created received", column);
+      dispatch({ type: "ADD_COLUMN", payload: column });
+    };
+
+    const handleColumnUpdated = (column: Column) => {
+      console.log("SOCKET: column-updated received", column);
+      dispatch({ type: "UPDATE_COLUMN", payload: { id: column.id, name: column.name } });
+    };
+
+    const handleColumnDeleted = (deletedColumn: { id: number }) => {
+      console.log("SOCKET: column-deleted received", deletedColumn);
+      dispatch({ type: "DELETE_COLUMN", payload: deletedColumn.id });
+    };
+
+    const handleColumnsReordered = (reorderedColumns: Column[]) => {
+      console.log("SOCKET: columns-reordered received", reorderedColumns);
+      if (!reorderedColumns || !Array.isArray(reorderedColumns)) {
+        console.error("Invalid reordered columns data:", reorderedColumns);
+        return;
+      }
+      dispatch({ type: "REORDER_COLUMNS", payload: reorderedColumns });
     };
 
     socket.on("task-created", handleTaskCreated);
     socket.on("task-updated", handleTaskUpdated);
     socket.on("task-deleted", handleTaskDeleted);
     socket.on("tasks-reordered", handleTasksReordered);
-
-    return () => {
-      socket.off("task-created", handleTaskCreated);
-      socket.off("task-updated", handleTaskUpdated);
-      socket.off("task-deleted", handleTaskDeleted);
-      socket.off("tasks-reordered", handleTasksReordered);
-    };
-  }, []);
-
-  useEffect(() => {
-    const handleColumnCreated = (column: Column) => {
-      console.log("SOCKET: column-created received", column);
-      setColumns((prev) => [...prev, { ...column, tasks: [] }]);
-    };
-
-    const handleColumnUpdated = (column: Column) => {
-      console.log("SOCKET: column-updated received", column);
-      setColumns((prev) =>
-        prev.map((col) =>
-          col.id === column.id ? { ...col, name: column.name } : col,
-        ),
-      );
-    };
-
-    const handleColumnDeleted = (deletedColumn: { id: number }) => {
-      console.log("SOCKET: column-deleted received", deletedColumn);
-      setColumns((prev) => prev.filter((col) => col.id !== deletedColumn.id));
-    };
-
-    const handleColumnsReordered = (reorderedColumns: Column[]) => {
-      console.log("SOCKET: columns-reordered received", reorderedColumns);
-
-      if (!reorderedColumns || !Array.isArray(reorderedColumns)) {
-        console.error("Invalid reordered columns data:", reorderedColumns);
-        return;
-      }
-
-      setColumns((prev) => {
-        console.log("Previous columns:", prev);
-
-        const tasksMap = new Map(prev.map((col) => [col.id, col.tasks]));
-
-        const updatedColumns: ColumnWithTasks[] = reorderedColumns
-          .map((col) => {
-            if (!col || typeof col.id === "undefined") {
-              console.error("Invalid column in reordered data:", col);
-              return null;
-            }
-            return {
-              ...col,
-              tasks: tasksMap.get(col.id) || [],
-            };
-          })
-          .filter((col): col is ColumnWithTasks => col !== null);
-
-        console.log("Updated columns:", updatedColumns);
-        return updatedColumns;
-      });
-    };
-
     socket.on("column-created", handleColumnCreated);
     socket.on("column-updated", handleColumnUpdated);
     socket.on("column-deleted", handleColumnDeleted);
     socket.on("columns-reordered", handleColumnsReordered);
 
     return () => {
+      socket.off("task-created", handleTaskCreated);
+      socket.off("task-updated", handleTaskUpdated);
+      socket.off("task-deleted", handleTaskDeleted);
+      socket.off("tasks-reordered", handleTasksReordered);
       socket.off("column-created", handleColumnCreated);
       socket.off("column-updated", handleColumnUpdated);
       socket.off("column-deleted", handleColumnDeleted);
@@ -240,17 +158,9 @@ export default function Board({ projectId }: Props) {
   }, []);
 
   useEffect(() => {
-    const handleConnect = () => {
-      console.log("Socket connected:", socket.id);
-    };
-
-    const handleDisconnect = () => {
-      console.log("Socket disconnected");
-    };
-
-    const handleConnectError = (error: Error) => {
-      console.error("Socket connection error:", error);
-    };
+    const handleConnect = () => console.log("Socket connected:", socket.id);
+    const handleDisconnect = () => console.log("Socket disconnected");
+    const handleConnectError = (error: Error) => console.error("Socket connection error:", error);
 
     socket.on("connect", handleConnect);
     socket.on("disconnect", handleDisconnect);
@@ -269,9 +179,9 @@ export default function Board({ projectId }: Props) {
 
     const oldIndex = columns.findIndex((c) => c.id === active.id);
     const newIndex = columns.findIndex((c) => c.id === over.id);
-
     const newColumns = arrayMove(columns, oldIndex, newIndex);
-    setColumns(newColumns);
+    
+    dispatch({ type: "SET_COLUMNS", payload: newColumns });
 
     try {
       await reorderColumnsApi(
@@ -280,12 +190,12 @@ export default function Board({ projectId }: Props) {
       );
     } catch (error) {
       console.error(error);
-      setError("Не удалось сохранить порядок колонок");
+      dispatch({ type: "SET_ERROR", payload: "Не удалось сохранить порядок колонок" });
     }
   };
 
   const handleTaskDragStart = (event: DragStartEvent) => {
-    setActiveTaskId(event.active.id as number);
+    dispatch({ type: "SET_ACTIVE_TASK", payload: event.active.id as number });
   };
 
   const handleTaskDragEnd = async (
@@ -293,30 +203,20 @@ export default function Board({ projectId }: Props) {
     columnId: number,
     newPosition: number,
   ) => {
-    setActiveTaskId(null);
+    dispatch({ type: "SET_ACTIVE_TASK", payload: null });
     const { active, over } = event;
-
     if (!over || active.id === over.id) return;
 
     try {
-      await reorderTaskApi(
-        projectId,
-        columnId,
-        active.id as number,
-        newPosition,
-      );
+      await reorderTaskApi(projectId, columnId, active.id as number, newPosition);
     } catch (error) {
       console.error(error);
-      setError("Не удалось сохранить порядок задач");
+      dispatch({ type: "SET_ERROR", payload: "Не удалось сохранить порядок задач" });
     }
   };
 
   const handleTaskOrderChange = (columnId: number, updatedTasks: Task[]) => {
-    setColumns((prev) =>
-      prev.map((col) =>
-        col.id === columnId ? { ...col, tasks: updatedTasks } : col,
-      ),
-    );
+    dispatch({ type: "REORDER_TASKS", payload: { columnId, tasks: updatedTasks } });
   };
 
   const handleAddColumn = async () => {
@@ -324,40 +224,36 @@ export default function Board({ projectId }: Props) {
 
     try {
       const newColumn = await createColumnApi(projectId, newColumnName.trim());
-      setColumns([...columns, { ...newColumn, tasks: [] }]);
-      setNewColumnName("");
-      setAdding(false);
-      setError(null);
+      dispatch({ type: "ADD_COLUMN", payload: newColumn });
+      dispatch({ type: "SET_NEW_COLUMN_NAME", payload: "" });
+      dispatch({ type: "SET_ADDING", payload: false });
+      dispatch({ type: "SET_ERROR", payload: null });
     } catch (error) {
       console.error(error);
-      setError("Не удалось создать колонку");
+      dispatch({ type: "SET_ERROR", payload: "Не удалось создать колонку" });
     }
   };
 
   const handleDeleteColumn = async (columnId: number) => {
     try {
-      setError(null);
-      setColumns((prev) => prev.filter((c) => c.id !== columnId));
+      dispatch({ type: "SET_ERROR", payload: null });
+      dispatch({ type: "DELETE_COLUMN", payload: columnId });
       await deleteColumnApi(projectId, columnId);
     } catch (error) {
       console.error(error);
-      setError("Не удалось удалить колонку");
+      dispatch({ type: "SET_ERROR", payload: "Не удалось удалить колонку" });
       await loadColumns();
     }
   };
 
   const handleUpdateColumn = async (columnId: number, newName: string) => {
     try {
-      setError(null);
+      dispatch({ type: "SET_ERROR", payload: null });
       await updateColumnApi(projectId, columnId, newName);
-      setColumns((prev) =>
-        prev.map((col) =>
-          col.id === columnId ? { ...col, name: newName } : col,
-        ),
-      );
+      dispatch({ type: "UPDATE_COLUMN", payload: { id: columnId, name: newName } });
     } catch (error) {
       console.error(error);
-      setError("Не удалось обновить колонку");
+      dispatch({ type: "SET_ERROR", payload: "Не удалось обновить колонку" });
       throw error;
     }
   };
@@ -377,13 +273,13 @@ export default function Board({ projectId }: Props) {
 
   const handleAddClick = (e: React.MouseEvent) => {
     e.preventDefault();
-    setAdding(true);
+    dispatch({ type: "SET_ADDING", payload: true });
   };
 
-  const handleCancelAdd = (e: React.MouseEvent) => {
+  const handleCancelAdd = (e: React.MouseEvent | React.KeyboardEvent) => {
     e.preventDefault();
-    setAdding(false);
-    setNewColumnName("");
+    dispatch({ type: "SET_ADDING", payload: false });
+    dispatch({ type: "SET_NEW_COLUMN_NAME", payload: "" });
   };
 
   if (loading) {
@@ -405,7 +301,9 @@ export default function Board({ projectId }: Props) {
       {error && (
         <div className="board-error">
           <p>{error}</p>
-          <button onClick={() => setError(null)}>Закрыть</button>
+          <button onClick={() => dispatch({ type: "SET_ERROR", payload: null })}>
+            Закрыть
+          </button>
         </div>
       )}
 
@@ -440,7 +338,9 @@ export default function Board({ projectId }: Props) {
                 <input
                   type="text"
                   value={newColumnName}
-                  onChange={(e) => setNewColumnName(e.target.value)}
+                  onChange={(e) => 
+                    dispatch({ type: "SET_NEW_COLUMN_NAME", payload: e.target.value })
+                  }
                   onKeyDown={(e: React.KeyboardEvent) => {
                     if (e.key === "Enter") handleAddColumn();
                     if (e.key === "Escape") handleCancelAdd(e);
@@ -471,4 +371,4 @@ export default function Board({ projectId }: Props) {
       </DndContext>
     </div>
   );
-}
+};

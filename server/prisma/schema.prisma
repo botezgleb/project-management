@@ -17,18 +17,27 @@ enum ProjectRole {
   MEMBER
 }
 
+enum FriendRequestStatus {
+  PENDING
+  ACCEPTED
+  REJECTED
+}
+
 model User {
   id       Int      @id @default(autoincrement())
   email    String   @unique
   password String
   name     String
   role     UserRole @default(USER)
+  username String   @unique
 
   createdAt      DateTime        @default(now())
   projectMembers ProjectMember[]
   createdTasks   Task[]          @relation("CreatedTasks")
   taskAssignees  TaskAssignee[]
   refreshTokens  refreshToken[]
+
+  @@index([username])
 }
 
 model Project {
@@ -118,4 +127,19 @@ model refreshToken {
   createdAt DateTime @default(now())
   expiresAt DateTime
   user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model friendRequest {
+  id         Int                 @id @default(autoincrement())
+  senderId   Int
+  receiverId Int
+  status     FriendRequestStatus
+  createdAt  DateTime            @default(now())
+}
+
+model friendship {
+  id        Int      @id @default(autoincrement())
+  userId    Int
+  friendId  Int
+  createdAt DateTime @default(now())
 }
