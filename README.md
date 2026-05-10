@@ -1,4 +1,4 @@
-# TaskFlow
+# NONSENSE
 
 <p align="center">
   <img src="./screenshots/main.png" width="800"/>
@@ -128,7 +128,7 @@ npm install
 ### 3. Создание `.env`
 
 ```env
-DATABASE_URL=postgresql://user:password@localhost:5432/taskflow
+DATABASE_URL=postgresql://user:password@localhost:5432/progect-management
 ACCESS_SECRET_KEY=your_access_secret
 REFRESH_SECRET_KEY=your_refresh_secret
 CLIENT_URL=http://localhost:5173
