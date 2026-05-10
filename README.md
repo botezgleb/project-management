@@ -188,6 +188,9 @@ npm run dev
 ### Авторизация
 <p align="center">
   <img src="./screenshots/login.png" width="350"/>
+</p>
+
+<p align="center">
   <img src="./screenshots/register.png" width="350"/>
 </p>
 
