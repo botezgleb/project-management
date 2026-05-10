@@ -196,12 +196,12 @@ npm run dev
 
 ### Просмотр задачи
 <p align="center">
-  <img src="./screenshots/task-modal.png" width="700"/>
+  <img src="./screenshots/task-modal.png" width="800"/>
 </p>
 
 ### Управление проектами
 <p align="center">
-  <img src="./screenshots/projects.png" width="700"/>
+  <img src="./screenshots/projects.png" width="800"/>
 </p>
 
 ---
