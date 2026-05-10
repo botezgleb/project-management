@@ -187,11 +187,11 @@ npm run dev
 
 ### Авторизация
 <p align="center">
-  <img src="./screenshots/login.png" width="350"/>
+  <img src="./screenshots/login.png" width="800"/>
 </p>
 
 <p align="center">
-  <img src="./screenshots/register.png" width="350"/>
+  <img src="./screenshots/register.png" width="800"/>
 </p>
 
 ### Просмотр задачи
