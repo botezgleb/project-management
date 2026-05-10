@@ -164,6 +164,10 @@
   border-radius: 0;
 }
 
+.delete-task-btn {
+  font-size: 24px;
+}
+
 .edit-task-btn::before,
 .delete-task-btn::before {
   content: '';

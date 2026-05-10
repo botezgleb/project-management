@@ -64,6 +64,9 @@ export const NavBar = () => {
                 <Link to="/about" onClick={handleLinkClick}>О нас</Link>
               </li>
               <li>
+                <Link to="/colleagues" onClick={handleLinkClick}>Коллеги</Link>
+              </li>
+              <li>
                 <button onClick={handleLogout} className="logout-btn">
                   Выйти
                 </button>

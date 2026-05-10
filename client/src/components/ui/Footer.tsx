@@ -68,7 +68,7 @@ export const Footer = () => {
         </div>
 
         <div className="footer-social">
-          <a href="https://www.telegram.com/" className="social-link">
+          <a href="https://www.telegram.org/" className="social-link">
             <img src={telegramLogo} alt="Telegram" />
           </a>
           <a href="https://www.x.com/" className="social-link">

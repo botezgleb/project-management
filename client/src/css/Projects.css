@@ -509,6 +509,10 @@
   color: black;
 }
 
+.project-actions .delete-btn {
+  font-size: 24px;
+}
+
 .project-actions button::before {
   content: '';
   position: absolute;

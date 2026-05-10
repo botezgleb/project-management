@@ -9,14 +9,26 @@ interface Props {
   task: Task;
   columnId: number;
   onDelete: (columnId: number, taskId: number) => Promise<void>;
-  onUpdate: (columnId: number, taskId: number, title: string, description: string) => Promise<void>;
+  onUpdate: (
+    columnId: number,
+    taskId: number,
+    title: string,
+    description: string,
+  ) => Promise<void>;
 }
 
-export default function TaskCard({ task, columnId, onDelete, onUpdate }: Props) {
+export default function TaskCard({
+  task,
+  columnId,
+  onDelete,
+  onUpdate,
+}: Props) {
   const [isEditing, setIsEditing] = useState(false);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editTitle, setEditTitle] = useState(task.title);
-  const [editDescription, setEditDescription] = useState(task.description || "");
+  const [editDescription, setEditDescription] = useState(
+    task.description || "",
+  );
   const [isDeleting, setIsDeleting] = useState(false);
 
   const {
@@ -26,9 +38,9 @@ export default function TaskCard({ task, columnId, onDelete, onUpdate }: Props) 
     transform,
     transition,
     isDragging,
-  } = useSortable({ 
+  } = useSortable({
     id: task.id,
-    disabled: isEditing
+    disabled: isEditing,
   });
 
   const style = {
@@ -47,7 +59,7 @@ export default function TaskCard({ task, columnId, onDelete, onUpdate }: Props) 
   const handleDelete = async (e: React.MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
-    
+
     if (!window.confirm("Вы уверены, что хотите удалить эту задачу?")) {
       return;
     }
@@ -74,16 +86,15 @@ export default function TaskCard({ task, columnId, onDelete, onUpdate }: Props) 
     }
   };
 
-  const handleCardClick = (e: React.MouseEvent) => {
-    const target = e.target as HTMLElement;
-    if (
-      target.closest('.task-drag-handle') || 
-      target.closest('button') ||
-      target.closest('.task-actions')
-    ) {
-      return;
-    }
+  const handleOpenModal = () => {
     setIsModalOpen(true);
+    setIsEditing(false);
+  };
+
+  const handleEditClick = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    setIsModalOpen(true);
+    setIsEditing(true);
   };
 
   const dragHandleProps = {
@@ -91,70 +102,37 @@ export default function TaskCard({ task, columnId, onDelete, onUpdate }: Props) 
     ...listeners,
   };
 
-  if (isEditing) {
-    return (
-      <div className="task-card editing" style={style} ref={setNodeRef}>
-        <div className="task-edit-form">
-          <input
-            type="text"
-            value={editTitle}
-            onChange={(e) => setEditTitle(e.target.value)}
-            placeholder="Название задачи"
-            onKeyDown={handleKeyDown}
-            autoFocus
-            className="task-edit-input"
-          />
-          <textarea
-            value={editDescription}
-            onChange={(e) => setEditDescription(e.target.value)}
-            placeholder="Описание (необязательно)"
-            onKeyDown={handleKeyDown}
-            rows={3}
-            className="task-edit-textarea"
-          />
-          <div className="task-edit-actions">
-            <button onClick={handleUpdate} type="button">Сохранить</button>
-            <button onClick={() => setIsEditing(false)} type="button">Отмена</button>
-          </div>
-        </div>
-      </div>
-    );
-  }
-
   return (
     <>
-      <div 
-        ref={setNodeRef} 
-        style={style} 
-        className={`task-card ${isDeleting ? 'deleting' : ''}`}
-        onClick={handleCardClick}
+      <div
+        ref={setNodeRef}
+        style={style}
+        className={`task-card ${isDeleting ? "deleting" : ""}`}
+        onClick={handleOpenModal}
       >
         <div className="task-drag-handle" {...dragHandleProps}>
           ⋮⋮
         </div>
-        
+
         <div className="task-content">
           <h4 className="task-title">{task.title}</h4>
           {task.description && (
-            <p className="task-description">{task.description.substring(0, 50)}...</p>
+            <p className="task-description">
+              {task.description.substring(0, 50)}...
+            </p>
           )}
         </div>
 
         <div className="task-actions">
-          <button 
+          <button
             className="edit-task-btn"
-            onClick={(e) => {
-              e.preventDefault();
-              e.stopPropagation();
-              setIsEditing(true);
-              setIsModalOpen(true);
-            }}
+            onClick={handleEditClick}
             title="Редактировать"
             type="button"
           >
             ✎
           </button>
-          <button 
+          <button
             className="delete-task-btn"
             onClick={handleDelete}
             title="Удалить"

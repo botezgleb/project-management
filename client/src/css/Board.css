@@ -237,7 +237,7 @@
   opacity: 1;
 }
 
-.edit-column-btn,
+/* .edit-column-btn,
 .delete-column-btn {
   width: 32px;
   height: 32px;
@@ -256,7 +256,7 @@
   flex-shrink: 0;
   padding: 0;
   line-height: 1;
-}
+} */
 
 .edit-column-btn::before,
 .delete-column-btn::before {

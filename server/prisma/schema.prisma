@@ -29,13 +29,22 @@ model User {
   password String
   name     String
   role     UserRole @default(USER)
-  username String   @unique
+  username String?   @unique
 
-  createdAt      DateTime        @default(now())
+  createdAt DateTime @default(now())
+
   projectMembers ProjectMember[]
-  createdTasks   Task[]          @relation("CreatedTasks")
-  taskAssignees  TaskAssignee[]
-  refreshTokens  refreshToken[]
+
+  createdTasks  Task[]          @relation("CreatedTasks")
+  taskAssignees TaskAssignee[]
+
+  refreshTokens refreshToken[]
+
+  sentFriendRequests     friendRequest[] @relation("SentFriendRequests")
+  receivedFriendRequests friendRequest[] @relation("ReceivedFriendRequests")
+
+  friendshipsAsUser   friendship[] @relation("UserFriendships")
+  friendshipsAsFriend friendship[] @relation("FriendFriendships")
 
   @@index([username])
 }
@@ -45,7 +54,8 @@ model Project {
   name        String
   description String?
 
-  createdAt      DateTime        @default(now())
+  createdAt DateTime @default(now())
+
   projectMembers ProjectMember[]
   columns        Column[]
 
@@ -94,7 +104,8 @@ model Task {
   column    Column @relation(fields: [columnId], references: [id], onDelete: Cascade)
   createdBy User   @relation("CreatedTasks", fields: [createdById], references: [id])
 
-  createdAt     DateTime       @default(now())
+  createdAt DateTime @default(now())
+
   taskAssignees TaskAssignee[]
 
   @@unique([columnId, position])
@@ -126,15 +137,24 @@ model refreshToken {
   userId    Int
   createdAt DateTime @default(now())
   expiresAt DateTime
-  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 }
 
 model friendRequest {
   id         Int                 @id @default(autoincrement())
   senderId   Int
   receiverId Int
-  status     FriendRequestStatus
+  status     FriendRequestStatus @default(PENDING)
   createdAt  DateTime            @default(now())
+
+  sender   User @relation("SentFriendRequests", fields: [senderId], references: [id], onDelete: Cascade)
+  receiver User @relation("ReceivedFriendRequests", fields: [receiverId], references: [id], onDelete: Cascade)
+
+  @@unique([senderId, receiverId])
+  @@index([senderId])
+  @@index([receiverId])
+  @@index([status])
 }
 
 model friendship {
@@ -142,4 +162,11 @@ model friendship {
   userId    Int
   friendId  Int
   createdAt DateTime @default(now())
+
+  user   User @relation("UserFriendships", fields: [userId], references: [id], onDelete: Cascade)
+  friend User @relation("FriendFriendships", fields: [friendId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, friendId])
+  @@index([userId])
+  @@index([friendId])
 }
