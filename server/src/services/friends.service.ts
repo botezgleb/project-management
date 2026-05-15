@@ -6,5 +6,7 @@ export const sendFriendRequestService = async (senderId: number, receiverId: num
     throw new Error("Ошибка. Нельзя добавить самого себя");
   }
 
+  
+
   const existingFriend = 0
 }

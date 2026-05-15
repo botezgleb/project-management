@@ -17,11 +17,18 @@ export const boardReducer = (
     case "SET_COLUMNS":
       return { ...state, columns: action.payload };
 
-    case "ADD_COLUMN":
+    case "ADD_COLUMN": {
+      const exists = state.columns.some((col) => col.id === action.payload.id);
+
+      if (exists) {
+        return state;
+      }
+
       return {
         ...state,
         columns: [...state.columns, { ...action.payload, tasks: [] }],
       };
+    }
 
     case "UPDATE_COLUMN":
       return {
