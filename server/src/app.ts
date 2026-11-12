@@ -7,6 +7,7 @@ import authRouter from "./routes/auth.route";
 import projectRouter from "./routes/project.route";
 import cookieParser from "cookie-parser";
 import friendsRouter from "./routes/friends.route";
+import userRouter from "./routes/user.route";
 
 const app = express();
 
@@ -22,5 +23,6 @@ app.use(cookieParser());
 app.use("/api/auth", authRouter);
 app.use("/api/projects", projectRouter);
 app.use("/api/friends", friendsRouter);
+app.use("/api/users", userRouter);
 
 export default app;

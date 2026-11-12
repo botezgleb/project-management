@@ -32,6 +32,7 @@ import { boardReducer, initialState } from "./boardReducer";
 import ColumnComponent from "./Column";
 import "../../css/Board.css";
 import { socket } from "../../socket/socket";
+import { ProjectMembers } from "../project/ProjectMembers";
 
 interface Props {
   projectId: number;
@@ -296,6 +297,7 @@ export const Board = ({ projectId }: Props) => {
         <h2>
           Project <span>Board</span>
         </h2>
+        <ProjectMembers projectId={projectId} />
       </div>
 
       {error && (

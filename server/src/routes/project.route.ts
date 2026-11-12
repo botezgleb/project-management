@@ -25,6 +25,12 @@ import {
   updateTaskController,
 } from "../controllers/task.controller";
 
+import {
+  addMemberController,
+  getMembersController,
+  removeMemberController,
+} from "../controllers/member.controller";
+
 const router = Router();
 
 // проекты
@@ -49,6 +55,27 @@ router.patch(
   projectAccessMiddleware,
   projectRoleMiddleware([ProjectRole.OWNER]),
   updateProjectController,
+);
+
+// участники
+router.get(
+  "/:projectId/members",
+  authMiddleware,
+  projectAccessMiddleware,
+  getMembersController,
+);
+router.post(
+  "/:projectId/members",
+  authMiddleware,
+  projectAccessMiddleware,
+  projectRoleMiddleware([ProjectRole.OWNER]),
+  addMemberController,
+);
+router.delete(
+  "/:projectId/members/:userId",
+  authMiddleware,
+  projectAccessMiddleware,
+  removeMemberController,
 );
 
 // колонки

@@ -1,10 +1,12 @@
 import { useState, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { useAuth } from "../../hooks/useAuth";
+import { useRealtime } from "../../hooks/useRealtime";
 import logoPng from "../../assets/logo.png";
 
 export const NavBar = () => {
   const { isAuth, logout } = useAuth();
+  const { incomingCount } = useRealtime();
   const navigate = useNavigate();
   const [isOpen, setIsOpen] = useState(false);
   const [isMobile, setIsMobile] = useState(window.innerWidth <= 768);
@@ -64,7 +66,17 @@ export const NavBar = () => {
                 <Link to="/about" onClick={handleLinkClick}>О нас</Link>
               </li>
               <li>
-                <Link to="/colleagues" onClick={handleLinkClick}>Коллеги</Link>
+                <Link to="/colleagues" onClick={handleLinkClick} className="nav-link-with-badge">
+                  Коллеги
+                  {incomingCount > 0 && (
+                    <span className="nav-badge" title="Входящие заявки">
+                      {incomingCount}
+                    </span>
+                  )}
+                </Link>
+              </li>
+              <li>
+                <Link to="/profile" onClick={handleLinkClick}>Профиль</Link>
               </li>
               <li>
                 <button onClick={handleLogout} className="logout-btn">

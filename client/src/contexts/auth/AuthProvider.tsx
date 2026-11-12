@@ -16,6 +16,10 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     setIsAuth(true);
   };
 
+  const updateUser = (data: Partial<User>) => {
+    setUser((prev) => (prev ? { ...prev, ...data } : prev));
+  };
+
   const logout = async () => {
     try {
       await api.post("/logout");
@@ -49,7 +53,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   }, []);
 
   return (
-    <AuthContext.Provider value={{ isAuth, user, loading, login, logout }}>
+    <AuthContext.Provider value={{ isAuth, user, loading, login, logout, updateUser }}>
       {children}
     </AuthContext.Provider>
   );

@@ -46,6 +46,11 @@
   margin-bottom: 50px;
   position: relative;
   z-index: 1;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 20px;
 }
 
 .board-header h2 {

@@ -9,6 +9,7 @@ import { useNavigate } from "react-router-dom";
 import { useAuth } from "../hooks/useAuth";
 import type { Project } from "../types/project";
 import "../css/Projects.css";
+import { socket } from "../socket/socket";
 import userIcon from "../assets/user-icon.png";
 import ownerIcon from "../assets/owner-icon.svg";
 
@@ -43,6 +44,18 @@ export const Projects = () => {
     };
 
     loadProjects();
+
+    // нас добавили в проект или исключили из него — обновляем список
+    const reload = () => {
+      getProjectsApi().then(setProjects).catch(console.error);
+    };
+    socket.on("project:added", reload);
+    socket.on("project:removed", reload);
+
+    return () => {
+      socket.off("project:added", reload);
+      socket.off("project:removed", reload);
+    };
   }, []);
 
   const handleCreateProject = async () => {

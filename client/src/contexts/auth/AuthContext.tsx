@@ -4,6 +4,7 @@ export interface User {
   id: number;
   email: string;
   name: string;
+  username?: string | null;
   role: string;
 }
 
@@ -13,6 +14,7 @@ interface AuthContextType {
   loading: boolean;
   login: (accessToken: string, user: User) => void;
   logout: () => void;
+  updateUser: (data: Partial<User>) => void;
 }
 
 export const AuthContext = createContext<AuthContextType | null>(null);

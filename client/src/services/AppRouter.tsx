@@ -7,6 +7,9 @@ import { About } from "../pages/About";
 import { ProtectedRoute } from "../components/routes/ProtectedRoute";
 import { PublicRoute } from "../components/routes/PublicRoutes";
 import ProjectBoard from "../pages/ProjectBoard";
+import { Profile } from "../pages/Profile";
+import { UserProfile } from "../pages/UserProfile";
+import { Colleagues } from "../pages/Colleagues";
 
 export const AppRouter = () => {
   return (
@@ -47,6 +50,30 @@ export const AppRouter = () => {
         element={
           <ProtectedRoute>
             <ProjectBoard />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/profile"
+        element={
+          <ProtectedRoute>
+            <Profile />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/users/:userId"
+        element={
+          <ProtectedRoute>
+            <UserProfile />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/colleagues"
+        element={
+          <ProtectedRoute>
+            <Colleagues />
           </ProtectedRoute>
         }
       />

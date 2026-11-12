@@ -9,3 +9,8 @@ export interface UpdateProjectData {
   name?: string;
   description?: string;
 }
+
+export interface UpdateProfileData {
+  name?: string;
+  username?: string | null;
+}
