@@ -1,5 +1,9 @@
 import { prisma } from "../utils/prisma";
 
+export const columnInclude = {
+  responsible: { select: { id: true, name: true, username: true } },
+} as const;
+
 export const getMaxColumnPosition = async (projectId: number) => {
   const result = await prisma.column.aggregate({
     where: { projectId },
@@ -25,6 +29,7 @@ export const getColumns = async (projectId: number) => {
   const columns = await prisma.column.findMany({
     where: { projectId },
     orderBy: { position: "asc" },
+    include: columnInclude,
   });
 
   return columns;
@@ -33,7 +38,7 @@ export const getColumns = async (projectId: number) => {
 export const updateColumn = async (
   columnId: number,
   projectId: number,
-  data: { name: string },
+  data: { name?: string; isDone?: boolean; responsibleId?: number | null },
 ) => {
   const updatedColumn = await prisma.column.update({
     where: {
@@ -41,6 +46,7 @@ export const updateColumn = async (
       projectId: projectId,
     },
     data,
+    include: columnInclude,
   });
 
   return updatedColumn;
@@ -120,6 +126,7 @@ export const reorderColumns = async (
     const updatedColumns = await tx.column.findMany({
       where: { projectId },
       orderBy: { position: "asc" },
+      include: columnInclude,
     });
 
     return updatedColumns;

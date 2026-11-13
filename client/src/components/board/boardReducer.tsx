@@ -34,9 +34,7 @@ export const boardReducer = (
       return {
         ...state,
         columns: state.columns.map((col) =>
-          col.id === action.payload.id
-            ? { ...col, name: action.payload.name }
-            : col,
+          col.id === action.payload.id ? { ...col, ...action.payload } : col,
         ),
       };
 
@@ -102,6 +100,27 @@ export const boardReducer = (
             : col,
         ),
       };
+
+    // точечное обновление задач (исполнители, выполнение, блокеры…)
+    case "UPSERT_TASKS": {
+      const byId = new Map(action.payload.map((t) => [t.id, t]));
+      return {
+        ...state,
+        columns: state.columns.map((col) => {
+          let changed = false;
+          const tasks = col.tasks.map((t) => {
+            const next = byId.get(t.id);
+            // задача уехала в другую колонку — это придёт отдельным tasks-reordered
+            if (next && next.columnId === col.id) {
+              changed = true;
+              return next;
+            }
+            return t;
+          });
+          return changed ? { ...col, tasks } : col;
+        }),
+      };
+    }
 
     case "SET_LOADING":
       return { ...state, loading: action.payload };

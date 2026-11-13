@@ -46,6 +46,9 @@ model User {
   friendshipsAsUser   friendship[] @relation("UserFriendships")
   friendshipsAsFriend friendship[] @relation("FriendFriendships")
 
+  responsibleColumns Column[]  @relation("ColumnResponsible")
+  assignedSubtasks   Subtask[] @relation("SubtaskAssignee")
+
   @@index([username])
 }
 
@@ -86,10 +89,17 @@ model Column {
 
   project Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
 
+  // финальная колонка: задачи в ней считаются выполненными
+  isDone        Boolean @default(false)
+  // ответственный: новые задачи колонки назначаются на него
+  responsibleId Int?
+  responsible   User?   @relation("ColumnResponsible", fields: [responsibleId], references: [id], onDelete: SetNull)
+
   createdAt DateTime @default(now())
   tasks     Task[]
 
   @@unique([projectId, position])
+  @@index([responsibleId])
   @@index([projectId, position])
 }
 
@@ -106,7 +116,15 @@ model Task {
 
   createdAt DateTime @default(now())
 
+  completed   Boolean   @default(false)
+  completedAt DateTime?
+
   taskAssignees TaskAssignee[]
+  subtasks      Subtask[]
+  // задачи, от которых зависит эта (блокеры)
+  blockedBy     TaskDependency[] @relation("DependencyTask")
+  // задачи, которые ждут эту
+  blocking      TaskDependency[] @relation("DependencyBlocker")
 
   @@unique([columnId, position])
   @@index([columnId])
@@ -121,8 +139,8 @@ model TaskAssignee {
   taskId Int
   userId Int
 
-  task Task @relation(fields: [taskId], references: [id])
-  user User @relation(fields: [userId], references: [id])
+  task Task @relation(fields: [taskId], references: [id], onDelete: Cascade)
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   createdAt DateTime @default(now())
 
@@ -169,4 +187,39 @@ model friendship {
   @@unique([userId, friendId])
   @@index([userId])
   @@index([friendId])
+}
+
+// Подзадачи: дерево внутри задачи (parentId → вложенность любой глубины)
+model Subtask {
+  id         Int      @id @default(autoincrement())
+  taskId     Int
+  parentId   Int?
+  title      String
+  completed  Boolean  @default(false)
+  assigneeId Int?
+  position   Int
+  createdAt  DateTime @default(now())
+
+  task     Task      @relation(fields: [taskId], references: [id], onDelete: Cascade)
+  parent   Subtask?  @relation("SubtaskTree", fields: [parentId], references: [id], onDelete: Cascade)
+  children Subtask[] @relation("SubtaskTree")
+  assignee User?     @relation("SubtaskAssignee", fields: [assigneeId], references: [id], onDelete: SetNull)
+
+  @@index([taskId])
+  @@index([parentId])
+  @@index([assigneeId])
+}
+
+// Зависимость: taskId не может быть завершена раньше dependsOnId
+model TaskDependency {
+  id          Int      @id @default(autoincrement())
+  taskId      Int
+  dependsOnId Int
+  createdAt   DateTime @default(now())
+
+  task      Task @relation("DependencyTask", fields: [taskId], references: [id], onDelete: Cascade)
+  dependsOn Task @relation("DependencyBlocker", fields: [dependsOnId], references: [id], onDelete: Cascade)
+
+  @@unique([taskId, dependsOnId])
+  @@index([dependsOnId])
 }

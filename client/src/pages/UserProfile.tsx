@@ -75,8 +75,8 @@ export const UserProfile = () => {
 
   if (loading) {
     return (
-      <div className="profile-loading">
-        <div className="loader"></div>
+      <div className="page-loading">
+        <div className="spinner"></div>
         <p>Загрузка профиля...</p>
       </div>
     );
@@ -84,7 +84,7 @@ export const UserProfile = () => {
 
   if (error || !profile) {
     return (
-      <div className="profile-page">
+      <div className="page profile-page">
         <div className="profile-error">
           <p>{error ?? "Пользователь не найден"}</p>
           <button onClick={() => navigate(-1)}>Назад</button>
@@ -108,15 +108,15 @@ export const UserProfile = () => {
   ];
 
   return (
-    <div className="profile-page">
-      <div className="profile-header">
-        <h1>
+    <div className="page profile-page">
+      <div className="page-header">
+        <h1 className="page-title">
           User <span>Profile</span>
         </h1>
       </div>
 
       <div className="profile-layout">
-        <section className="profile-card">
+        <section className="profile-card glass">
           <div className="profile-avatar">{getInitials(profile.name)}</div>
 
           <div className="profile-identity">
@@ -179,7 +179,7 @@ export const UserProfile = () => {
         </section>
 
         <div className="profile-main">
-          <section className="profile-section">
+          <section className="profile-section glass">
             <h3>Статистика</h3>
             <div className="profile-stats profile-stats-4">
               {statItems.map((item) => (
@@ -191,7 +191,7 @@ export const UserProfile = () => {
             </div>
           </section>
 
-          <section className="profile-section">
+          <section className="profile-section glass">
             <h3>Общие проекты</h3>
             {profile.mutualProjects.length === 0 ? (
               <p className="profile-muted">

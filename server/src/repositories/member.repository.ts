@@ -38,6 +38,14 @@ export const removeProjectMember = async (projectId: number, userId: number) => 
     prisma.taskAssignee.deleteMany({
       where: { userId, task: { column: { projectId } } },
     }),
+    prisma.subtask.updateMany({
+      where: { assigneeId: userId, task: { column: { projectId } } },
+      data: { assigneeId: null },
+    }),
+    prisma.column.updateMany({
+      where: { projectId, responsibleId: userId },
+      data: { responsibleId: null },
+    }),
     prisma.projectMember.delete({
       where: { projectId_userId: { projectId, userId } },
     }),

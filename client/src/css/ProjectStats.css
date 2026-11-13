@@ -1,0 +1,413 @@
+.stats-page {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+}
+
+.stats-page .page-header {
+  margin-bottom: 0;
+}
+
+.stats-page .board-toolbar {
+  margin-bottom: 0;
+}
+
+/* ---------- KPI ---------- */
+.stats-kpis {
+  display: grid;
+  grid-template-columns: minmax(260px, 1fr) 2fr;
+  gap: 16px;
+  animation: fade-up var(--dur-slow) var(--ease-out) both;
+}
+
+.stat-hero,
+.stat-tile,
+.stats-card {
+  border-radius: var(--radius-xl);
+}
+
+.stat-hero {
+  padding: 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.stat-hero-value {
+  font-size: 56px;
+  font-weight: 700;
+  letter-spacing: -0.04em;
+  line-height: 1;
+}
+
+.stat-sub {
+  font-size: 14px;
+  color: var(--text-secondary);
+}
+
+.stat-tiles {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 16px;
+}
+
+.stat-tile {
+  padding: 18px 20px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  gap: 6px;
+}
+
+.stat-label {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 14px;
+  color: var(--text-secondary);
+}
+
+.stat-status-icon {
+  width: 15px;
+  height: 15px;
+}
+
+.stat-status-icon.warning {
+  color: color-mix(in srgb, var(--warning) 80%, var(--text));
+}
+
+.stat-value {
+  font-size: 32px;
+  font-weight: 650;
+  letter-spacing: -0.03em;
+  line-height: 1.1;
+}
+
+.stat-value-of {
+  font-size: 20px;
+  font-weight: 500;
+  color: var(--text-tertiary);
+}
+
+/* полоса-«метр»: трек — светлая ступень того же оттенка */
+.meter {
+  height: 8px;
+  border-radius: var(--radius-pill);
+  background: var(--accent-soft);
+  overflow: hidden;
+}
+
+.meter span {
+  display: block;
+  height: 100%;
+  border-radius: var(--radius-pill);
+  background: var(--accent);
+  transition: width 700ms var(--ease-out);
+}
+
+/* ---------- карточки ---------- */
+.stats-card {
+  padding: 22px 24px;
+  animation: fade-up var(--dur-slow) var(--ease-out) 60ms both;
+}
+
+.stats-card-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 12px;
+  flex-wrap: wrap;
+  margin-bottom: 16px;
+}
+
+.stats-card-hint {
+  font-size: 13px;
+  color: var(--text-tertiary);
+}
+
+.stats-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 16px;
+}
+
+/* ---------- список «метров» по участникам ---------- */
+.meter-list {
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+}
+
+.meter-row {
+  display: grid;
+  grid-template-columns: minmax(180px, 240px) minmax(120px, 1fr) 64px;
+  grid-template-areas:
+    "who bar figure"
+    "who tags tags";
+  align-items: center;
+  column-gap: 16px;
+  row-gap: 6px;
+  padding: 12px 0;
+}
+
+.meter-row + .meter-row {
+  border-top: 1px solid var(--separator);
+}
+
+.meter-who {
+  grid-area: who;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  color: var(--text);
+  min-width: 0;
+}
+
+.meter-name {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  font-weight: 590;
+  font-size: 15px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.meter-name small {
+  font-weight: 400;
+  font-size: 12px;
+  color: var(--text-tertiary);
+}
+
+.meter-who:hover .meter-name {
+  color: var(--accent);
+}
+
+.meter-row-bar {
+  grid-area: bar;
+  height: 10px;
+  cursor: default;
+}
+
+.meter-figure {
+  grid-area: figure;
+  text-align: right;
+  font-size: 15px;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+}
+
+.meter-tags {
+  grid-area: tags;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  min-height: 0;
+}
+
+.meter-tags:empty {
+  display: none;
+}
+
+/* ---------- горизонтальные полосы по колонкам ---------- */
+.legend {
+  display: flex;
+  gap: 14px;
+  font-size: 13px;
+  color: var(--text-secondary);
+}
+
+.legend span {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.legend-swatch {
+  width: 10px;
+  height: 10px;
+  border-radius: 3px;
+}
+
+.legend-swatch.done,
+.hbar-seg.done {
+  background: var(--accent);
+}
+
+.legend-swatch.open,
+.hbar-seg.open {
+  background: color-mix(in srgb, var(--accent) 35%, var(--glass-bg-strong));
+}
+
+.hbars {
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.hbar-row {
+  display: grid;
+  grid-template-columns: 120px 1fr;
+  align-items: center;
+  gap: 12px;
+}
+
+.hbar-label {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 14px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.hbar-done-icon {
+  width: 14px;
+  height: 14px;
+  flex-shrink: 0;
+  color: var(--success);
+  stroke-width: 2.6;
+}
+
+.hbar-track {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  height: 28px;
+  border-left: 1px solid var(--separator);
+}
+
+/* ≤24px толщиной, скругление только на конце данных, 2px зазор между сегментами */
+.hbar {
+  display: flex;
+  gap: 2px;
+  height: 20px;
+  min-width: 2px;
+  transition: width 700ms var(--ease-out);
+}
+
+.hbar-seg {
+  height: 100%;
+}
+
+.hbar-seg:last-child {
+  border-radius: 0 4px 4px 0;
+}
+
+.hbar-value {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text-secondary);
+  font-variant-numeric: tabular-nums;
+}
+
+/* ---------- столбики активности ---------- */
+.columns-chart {
+  display: grid;
+  grid-template-columns: 24px 1fr;
+  grid-template-rows: 160px auto;
+  column-gap: 8px;
+}
+
+.columns-max {
+  font-size: 11px;
+  color: var(--text-tertiary);
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+}
+
+.columns-plot {
+  display: grid;
+  grid-template-columns: repeat(14, 1fr);
+  align-items: end;
+  border-bottom: 1px solid var(--separator);
+  border-top: 1px solid color-mix(in srgb, var(--separator) 50%, transparent);
+}
+
+.column-slot {
+  height: 100%;
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  cursor: default;
+}
+
+.column-slot:hover {
+  background: color-mix(in srgb, var(--accent) 6%, transparent);
+}
+
+.column-bar {
+  width: min(70%, 24px);
+  min-height: 0;
+  border-radius: 4px 4px 0 0;
+  background: var(--accent);
+  transition: height 700ms var(--ease-out);
+}
+
+.columns-axis {
+  grid-column: 2;
+  display: grid;
+  grid-template-columns: repeat(14, 1fr);
+  margin-top: 6px;
+  font-size: 11px;
+  color: var(--text-tertiary);
+  white-space: nowrap;
+}
+
+/* ---------- подсказка ---------- */
+.chart-tip {
+  position: fixed;
+  z-index: 400;
+  transform: translate(14px, -50%);
+  pointer-events: none;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 160px;
+  padding: 10px 12px;
+  border-radius: var(--radius-sm);
+  background: var(--popover-bg);
+  border: 1px solid var(--glass-border);
+  box-shadow: var(--glass-shadow-lg);
+  font-size: 13px;
+  color: var(--text-secondary);
+}
+
+.chart-tip strong {
+  color: var(--text);
+  font-weight: 650;
+  margin-bottom: 2px;
+}
+
+.visually-hidden {
+  position: absolute !important;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+}
+
+@media (max-width: 960px) {
+  .stats-kpis,
+  .stats-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 640px) {
+  .meter-row {
+    grid-template-columns: 1fr 56px;
+    grid-template-areas:
+      "who figure"
+      "bar bar"
+      "tags tags";
+  }
+
+  .stat-hero-value {
+    font-size: 48px;
+  }
+}

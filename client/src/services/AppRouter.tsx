@@ -9,6 +9,8 @@ import { PublicRoute } from "../components/routes/PublicRoutes";
 import ProjectBoard from "../pages/ProjectBoard";
 import { Profile } from "../pages/Profile";
 import { UserProfile } from "../pages/UserProfile";
+import { ProjectStats } from "../pages/ProjectStats";
+import { MyTasks } from "../pages/MyTasks";
 import { Colleagues } from "../pages/Colleagues";
 
 export const AppRouter = () => {
@@ -58,6 +60,22 @@ export const AppRouter = () => {
         element={
           <ProtectedRoute>
             <Profile />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/projects/:projectId/stats"
+        element={
+          <ProtectedRoute>
+            <ProjectStats />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/my-tasks"
+        element={
+          <ProtectedRoute>
+            <MyTasks />
           </ProtectedRoute>
         }
       />

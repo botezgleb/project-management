@@ -41,7 +41,7 @@ export const getProjectsController = async (req: Request, res: Response) => {
 export const getOneProjectController = async (req: Request, res: Response) => {
   try {
     const userId = req.user?.userId;
-    const projectId = Number(req.params.id);
+    const projectId = Number(req.params.projectId);
 
     if (!userId) {
       return res.status(401).json({ message: "Необходима авторизация" });

@@ -1,342 +1,260 @@
 .column {
-  min-width: 300px;
-  max-width: 300px;
-  background: var(--bg-primary);
-  border: 2px solid var(--border-color);
-  padding: 20px;
+  flex-shrink: 0;
+  width: 300px;
+  max-height: calc(100vh - 220px);
   display: flex;
   flex-direction: column;
-  max-height: calc(100vh - 200px);
-  position: relative;
-  box-shadow: 6px 6px 0 rgba(0, 0, 0, 0.1);
-  transition: all 0.3s ease;
+  border-radius: var(--radius-lg);
+  padding: 10px;
+  scroll-snap-align: start;
+  transition: background var(--dur) ease, box-shadow var(--dur) ease,
+    border-color var(--dur) ease;
+  /* backwards, не both: иначе анимация навсегда перебьёт transform от dnd-kit */
+  animation: fade-up var(--dur-slow) var(--ease-out) backwards;
 }
 
-.column:hover {
-  transform: translate(-2px, -2px);
-  box-shadow: 8px 8px 0 rgba(0, 0, 0, 0.1);
+/* место, откуда «подняли» колонку */
+.column.is-placeholder {
+  background: var(--glass-bg-subtle);
+  border: 1.5px dashed var(--separator);
+  box-shadow: none;
 }
 
-.column::after {
-  content: '';
-  position: absolute;
-  bottom: 5px;
-  right: 5px;
-  width: 30px;
-  height: 30px;
-  background: repeating-linear-gradient(
-    45deg,
-    transparent,
-    transparent 5px,
-    rgba(255, 225, 90, 0.2) 5px,
-    rgba(255, 225, 90, 0.2) 10px
-  );
+.column.is-placeholder::before {
+  display: none;
+}
+
+.column.is-placeholder > * {
   opacity: 0;
-  transition: opacity 0.3s ease;
-  pointer-events: none;
-}
-
-.column:hover::after {
-  opacity: 1;
 }
 
 .column-header {
-  padding-bottom: 15px;
-  margin-bottom: 15px;
   display: flex;
-  justify-content: space-between;
   align-items: center;
-  border-bottom: 2px solid var(--border-color);
-  gap: 10px;
-  position: relative;
+  gap: 6px;
+  padding: 6px 6px 10px 2px;
+  min-height: 44px;
+  border-radius: var(--radius-sm);
+  touch-action: manipulation;
+}
+
+.column-header.is-draggable {
+  cursor: grab;
+}
+
+.column-grip {
+  width: 18px;
+  height: 18px;
+  flex-shrink: 0;
+  color: var(--text-tertiary);
+  opacity: 0;
+  transition: opacity var(--dur-fast) ease;
+}
+
+.column-grip svg {
+  width: 100%;
+  height: 100%;
+}
+
+.column-header:hover .column-grip,
+.drag-overlay-item .column-grip {
+  opacity: 1;
 }
 
 .column-header h3 {
-  font-family: "Funnel Display", sans-serif;
-  font-size: 20px;
-  text-transform: uppercase;
-  letter-spacing: -0.3px;
-  color: black;
-  margin: 0;
-  flex: 1;
-  word-break: break-word;
-  cursor: pointer;
-  padding: 5px;
-  transition: all 0.2s ease;
+  flex: 0 1 auto;
+  min-width: 0;
+  font-size: 15px;
+  font-weight: 650;
+  letter-spacing: -0.015em;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
-.column-header input {
-  flex: 1;
-  padding: 8px 10px;
-  border: 2px solid var(--border-color);
-  background: transparent;
-  font-family: "Montserrat", sans-serif;
-  font-size: 16px;
+.column-count {
+  min-width: 24px;
+  height: 22px;
+  padding: 0 8px;
+  border-radius: var(--radius-pill);
+  background: var(--fill);
+  color: var(--text-secondary);
+  font-size: 12px;
   font-weight: 600;
-  outline: none;
-  transition: all 0.3s ease;
-}
-
-.delete-column-btn {
-  width: 30px;
-  height: 30px;
-  background: transparent;
-  border: 2px solid var(--border-color);
-  cursor: pointer;
-  display: flex;
+  display: inline-flex;
   align-items: center;
   justify-content: center;
-  font-size: 24px;
-  transition: all 0.3s ease;
-  position: relative;
-  overflow: hidden;
-  color: black;
-  flex-shrink: 0;
 }
 
-.delete-column-btn::before {
-  content: '';
-  position: absolute;
-  top: 0;
-  left: -100%;
-  width: 100%;
-  height: 100%;
-  background: #ff4444;
-  transition: left 0.3s ease;
-  z-index: -1;
+.column-actions {
+  margin-left: auto;
+  display: flex;
+  gap: 2px;
+  opacity: 0;
+  transform: translateX(4px);
+  transition: opacity var(--dur-fast) ease, transform var(--dur) var(--ease-out);
 }
 
-.delete-column-btn:hover {
-  color: white;
-  border-color: #ff4444;
+.column-header:hover .column-actions,
+.column-actions:focus-within {
+  opacity: 1;
+  transform: none;
 }
 
-.delete-column-btn:hover::before {
-  left: 0;
+.column-name-input {
+  flex: 1;
+  min-height: 34px !important;
+  padding: 6px 10px !important;
+  font-weight: 600;
 }
 
 .tasks {
   flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  min-height: 12px;
+  padding: 2px;
   overflow-y: auto;
-  min-height: 100px;
-  padding-right: 5px;
-  margin-bottom: 15px;
+  scrollbar-width: thin;
+  scrollbar-color: var(--fill-hover) transparent;
 }
 
-.tasks::-webkit-scrollbar {
-  width: 6px;
-}
-
-.tasks::-webkit-scrollbar-track {
-  background: #e1e1d6;
-  border: 1px solid var(--border-color);
-}
-
-.tasks::-webkit-scrollbar-thumb {
-  background: var(--border-color);
-  border: 1px solid var(--border-color);
+.tasks-empty {
+  padding: 22px 12px;
+  text-align: center;
+  color: var(--text-tertiary);
+  font-size: 13px;
+  border-radius: var(--radius-md);
+  border: 1.5px dashed var(--separator);
 }
 
 .add-task-btn {
-  width: 100%;
-  padding: 12px;
-  background: transparent;
-  border: 2px solid var(--border-color);
-  font-family: "Montserrat", sans-serif;
-  font-size: 14px;
-  text-transform: uppercase;
-  font-weight: 600;
-  letter-spacing: 0.5px;
-  cursor: pointer;
+  margin-top: 8px;
+  height: 40px;
   display: flex;
   align-items: center;
-  justify-content: center;
-  gap: 8px;
-  transition: all 0.3s ease;
-  position: relative;
-  overflow: hidden;
-  margin-top: auto;
+  gap: 6px;
+  padding: 0 12px;
+  border-radius: var(--radius-sm);
+  border: none;
+  background: transparent;
+  color: var(--text-secondary);
+  font-size: 14px;
+  font-weight: 560;
+  cursor: pointer;
+  transition: background var(--dur-fast) ease, color var(--dur-fast) ease;
 }
 
-.add-task-btn::before {
-  content: '';
-  position: absolute;
-  top: 0;
-  left: -100%;
-  width: 100%;
-  height: 100%;
-  background: black;
-  transition: left 0.3s ease;
-  z-index: -1;
+.add-task-btn svg {
+  width: 16px;
+  height: 16px;
 }
 
 .add-task-btn:hover {
-  color: white;
+  background: var(--fill);
+  color: var(--accent);
 }
 
-.add-task-btn:hover::before {
-  left: 0;
-}
-
-.add-task-btn:disabled {
-  opacity: 0.5;
-  cursor: not-allowed;
-}
-
-.column-edit-input {
-  flex: 1;
-  padding: 8px 12px;
-  border: 2px solid var(--border-color);
-  background: var(--bg-primary);
-  font-family: "Montserrat", sans-serif;
-  font-size: 16px;
-  font-weight: 500;
-  outline: none;
-  transition: all 0.3s ease;
-}
-
-.column-edit-input:focus {
-  transform: translate(-2px, -2px);
-  box-shadow: 4px 4px 0 rgba(0, 0, 0, 0.1);
-}
-
-.column-actions {
+.add-task-form {
+  margin-top: 8px;
   display: flex;
+  flex-direction: column;
   gap: 8px;
-  opacity: 0;
-  transition: opacity 0.3s ease;
+  animation: pop-in var(--dur) var(--ease-spring) both;
 }
 
-.column:hover .column-actions {
+.add-task-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+}
+
+@media (hover: none) {
+  .column-actions,
+  .column-grip {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+@media (max-width: 640px) {
+  .column {
+    width: 82vw;
+    max-height: none;
+  }
+}
+
+/* ============================================================
+   Готово, ответственный, меню
+   ============================================================ */
+.column-done-badge {
+  width: 20px;
+  height: 20px;
+  flex-shrink: 0;
+  border-radius: 50%;
+  background: var(--success);
+  color: #fff;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.column-done-badge svg {
+  width: 12px;
+  height: 12px;
+  stroke-width: 3;
+}
+
+.column.is-done-column {
+  background: color-mix(in srgb, var(--success) 7%, var(--glass-bg));
+}
+
+.column-responsible {
+  width: 24px;
+  height: 24px;
+  font-size: 10px;
+  margin-right: 2px;
+}
+
+/* аватар ответственного всегда виден, остальные действия — по наведению */
+.column-actions {
+  opacity: 1;
+  transform: none;
+}
+
+.column-menu {
+  position: relative;
+  opacity: 0;
+  transition: opacity var(--dur-fast) ease;
+}
+
+.column-header:hover .column-menu,
+.column-menu:focus-within,
+.column-menu:has(.popover) {
   opacity: 1;
 }
 
-.edit-column-btn,
-.delete-column-btn {
-  width: 32px;
-  height: 32px;
-  border: 2px solid var(--border-color);
-  background: var(--bg-primary);
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 16px;
-  transition: all 0.3s ease;
-  position: relative;
-  overflow: hidden;
-  box-shadow: 2px 2px 0 rgba(0, 0, 0, 0.1);
-  color: black;
+.column-menu .icon-btn.active {
+  background: var(--fill);
+  color: var(--text);
 }
 
-.edit-column-btn::before,
-.delete-column-btn::before {
-  content: '';
-  position: absolute;
-  top: 0;
-  left: -100%;
-  width: 100%;
-  height: 100%;
-  background: black;
-  transition: left 0.3s ease;
-  z-index: -1;
+.column-menu-popover {
+  top: calc(100% + 6px);
+  right: -4px;
+  width: 280px;
 }
 
-.edit-column-btn:hover,
-.delete-column-btn:hover {
-  color: white;
-  transform: translate(-2px, -2px);
-  box-shadow: 4px 4px 0 rgba(0, 0, 0, 0.1);
+.menu-picker {
+  margin: 2px 0 4px 26px;
+  padding: 4px;
+  border-radius: var(--radius-sm);
+  background: var(--fill);
 }
 
-.edit-column-btn:hover::before {
-  left: 0;
-  background: #000000;
-}
-
-.delete-column-btn:hover::before {
-  left: 0;
-  background: #ff4444;
-}
-
-.delete-column-btn:hover {
-  border-color: #ff4444;
-}
-
-.column-actions button {
-  width: 32px;
-  height: 32px;
-  border: 2px solid var(--border-color);
-  background: var(--bg-primary);
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 16px;
-  transition: all 0.2s ease;
-  position: relative;
-  overflow: hidden;
-  box-shadow: 2px 2px 0 rgba(0, 0, 0, 0.1);
-  color: black;
-  flex-shrink: 0;
-  padding: 0;
-  line-height: 1;
-}
-
-.column-actions button:hover {
-  transform: translate(-2px, -2px);
-  box-shadow: 4px 4px 0 rgba(0, 0, 0, 0.1);
-}
-
-.column-actions button:first-of-type:hover {
-  background: #ffe15a;
-  border-color: #ffe15a;
-  color: white;
-}
-
-.column-actions button:last-of-type:hover {
-  background: #ff4444;
-  border-color: #ff4444;
-  color: white;
-}
-
-@media (max-width: 768px) {
-  .column-actions {
+@media (hover: none) {
+  .column-menu {
     opacity: 1;
-  }
-
-  .edit-column-btn,
-  .delete-column-btn {
-    width: 28px;
-    height: 28px;
-    font-size: 14px;
-  }
-
-  .column-edit-input {
-    font-size: 14px;
-    padding: 6px 10px;
-  }
-}
-
-@media (max-width: 768px) {
-  .column {
-    min-width: 260px;
-    max-width: 260px;
-    padding: 15px;
-  }
-
-  .column-header h3 {
-    font-size: 18px;
-  }
-
-  .delete-column-btn {
-    width: 28px;
-    height: 28px;
-    font-size: 16px;
-  }
-
-  .add-task-btn {
-    padding: 10px;
-    font-size: 13px;
   }
 }

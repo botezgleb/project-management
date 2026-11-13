@@ -75,8 +75,8 @@ export const Profile = () => {
 
   if (loading) {
     return (
-      <div className="profile-loading">
-        <div className="loader"></div>
+      <div className="page-loading">
+        <div className="spinner"></div>
         <p>Загрузка профиля...</p>
       </div>
     );
@@ -84,7 +84,7 @@ export const Profile = () => {
 
   if (error || !profile) {
     return (
-      <div className="profile-page">
+      <div className="page profile-page">
         <div className="profile-error">
           <p>{error ?? "Профиль не найден"}</p>
           <button onClick={() => window.location.reload()}>
@@ -107,15 +107,15 @@ export const Profile = () => {
   ];
 
   return (
-    <div className="profile-page">
-      <div className="profile-header">
-        <h1>
+    <div className="page profile-page">
+      <div className="page-header">
+        <h1 className="page-title">
           Your <span>Profile</span>
         </h1>
       </div>
 
       <div className="profile-layout">
-        <section className="profile-card">
+        <section className="profile-card glass">
           <div className="profile-avatar">{getInitials(profile.name)}</div>
 
           {!isEditing ? (
@@ -170,7 +170,7 @@ export const Profile = () => {
               )}
 
               <button className="profile-btn" onClick={startEditing}>
-                ✎ Редактировать
+                Редактировать профиль
               </button>
             </>
           ) : (
@@ -231,7 +231,7 @@ export const Profile = () => {
         </section>
 
         <div className="profile-main">
-          <section className="profile-section">
+          <section className="profile-section glass">
             <h3>Статистика</h3>
             <div className="profile-stats">
               {statItems.map((item) => (
@@ -243,7 +243,7 @@ export const Profile = () => {
             </div>
           </section>
 
-          <section className="profile-section">
+          <section className="profile-section glass">
             <div className="profile-section-header">
               <h3>Мои проекты</h3>
               <button

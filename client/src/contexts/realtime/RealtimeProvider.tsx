@@ -112,11 +112,47 @@ export const RealtimeProvider = ({ children }: { children: React.ReactNode }) =>
       }
     };
 
+    type Brief = { id: number; name?: string; title?: string } | null;
+    const openTask = (project: Brief, taskId?: number) => () =>
+      project && navigate(`/projects/${project.id}${taskId ? `?task=${taskId}` : ""}`);
+
+    const handleTaskAssigned = ({ task, project }: { task: Brief; project: Brief }) =>
+      toast(`Вам назначена задача «${task?.title ?? ""}»`, {
+        description: project?.name,
+        action: { label: "Открыть", onClick: openTask(project, task?.id) },
+      });
+
+    const handleSubtaskAssigned = ({ subtask, task, project }: { subtask: Brief; task: Brief; project: Brief }) =>
+      toast(`Вам назначена подзадача «${subtask?.title ?? ""}»`, {
+        description: `${project?.name ?? ""} · ${task?.title ?? ""}`,
+        action: { label: "Открыть", onClick: openTask(project, task?.id) },
+      });
+
+    const handleResponsible = ({ column, project }: { column: Brief; project: Brief }) =>
+      toast(`Вы ответственный за колонку «${column?.name ?? ""}»`, {
+        description: project?.name,
+        action: { label: "Открыть", onClick: openTask(project) },
+      });
+
+    const handleBulk = ({ count, column, project }: { count: number; column: Brief; project: Brief }) =>
+      toast(`Вам назначено задач: ${count}`, {
+        description: `${project?.name ?? ""} · ${column?.name ?? ""}`,
+        action: { label: "Мои задачи", onClick: () => navigate("/my-tasks") },
+      });
+
+    socket.on("task:assigned", handleTaskAssigned);
+    socket.on("subtask:assigned", handleSubtaskAssigned);
+    socket.on("column:responsible", handleResponsible);
+    socket.on("tasks:assigned-bulk", handleBulk);
     socket.on("friends:changed", handleFriends);
     socket.on("project:added", handleProjectAdded);
     socket.on("project:removed", handleProjectRemoved);
 
     return () => {
+      socket.off("task:assigned", handleTaskAssigned);
+      socket.off("subtask:assigned", handleSubtaskAssigned);
+      socket.off("column:responsible", handleResponsible);
+      socket.off("tasks:assigned-bulk", handleBulk);
       socket.off("friends:changed", handleFriends);
       socket.off("project:added", handleProjectAdded);
       socket.off("project:removed", handleProjectRemoved);

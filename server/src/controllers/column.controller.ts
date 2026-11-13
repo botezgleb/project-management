@@ -3,6 +3,7 @@ import {
   createColumnService,
   getColumnsService,
   updateColumnService,
+  assignAllColumnTasksService,
   deleteColumnService,
   reorderColumnsService,
 } from "../services/column.service";
@@ -48,9 +49,31 @@ export const updateColumnController = async (req: Request, res: Response) => {
   try {
     const projectId = Number(req.params.projectId);
     const columnId = Number(req.params.columnId);
-    const { name } = req.body;
+    const { name, isDone, responsibleId } = req.body ?? {};
 
-    const result = await updateColumnService(projectId, columnId, name);
+    const result = await updateColumnService(
+      projectId,
+      columnId,
+      { name, isDone, responsibleId },
+      req.user?.userId,
+    );
+    return res.status(200).json(result);
+  } catch (error) {
+    return res.status(400).json({ message: (error as Error).message });
+  }
+};
+
+export const assignAllColumnTasksController = async (req: Request, res: Response) => {
+  try {
+    const userId = req.user?.userId;
+    if (!userId) return res.status(401).json({ message: "Необходима авторизация" });
+
+    const result = await assignAllColumnTasksService(
+      Number(req.params.projectId),
+      Number(req.params.columnId),
+      req.body?.userId,
+      userId,
+    );
     return res.status(200).json(result);
   } catch (error) {
     return res.status(400).json({ message: (error as Error).message });

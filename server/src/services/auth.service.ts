@@ -60,7 +60,8 @@ export const loginService = async (email: string, password: string) => {
     user: {
       id: user.id,
       email: user.email,
-      username: user.name,
+      name: user.name,
+      username: user.username,
       role: user.role,
     },
   };
@@ -107,7 +108,8 @@ export const registerService = async (
     user: {
       id: newUser.id,
       email: newUser.email,
-      username: newUser.name,
+      name: newUser.name,
+      username: newUser.username,
       role: newUser.role,
     },
   };

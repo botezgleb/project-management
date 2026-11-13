@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
+import { createPortal } from "react-dom";
 import { Link, useNavigate } from "react-router-dom";
 import {
   addProjectMemberApi,
@@ -6,25 +7,25 @@ import {
   removeProjectMemberApi,
 } from "../../services/api/members.api";
 import { getFriendsApi } from "../../services/api/friends.api";
-import { getOneProjectApi } from "../../services/api/projects.api";
 import { useAuth } from "../../hooks/useAuth";
 import { socket } from "../../socket/socket";
 import type { ProjectMember } from "../../types/member";
 import type { Colleague } from "../../types/friends";
 import { getErrorMessage, getInitials } from "../../utils/user";
+import { CloseIcon, PlusIcon, UsersIcon } from "../ui/Icons";
 import "../../css/ProjectMembers.css";
 
 interface Props {
   projectId: number;
+  myRole: "OWNER" | "MEMBER" | null;
 }
 
-export const ProjectMembers = ({ projectId }: Props) => {
+export const ProjectMembers = ({ projectId, myRole }: Props) => {
   const { user } = useAuth();
   const navigate = useNavigate();
 
   const [members, setMembers] = useState<ProjectMember[]>([]);
   const [friends, setFriends] = useState<Colleague[]>([]);
-  const [myRole, setMyRole] = useState<"OWNER" | "MEMBER" | null>(null);
   const [isOpen, setIsOpen] = useState(false);
   const [busyId, setBusyId] = useState<number | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -37,20 +38,8 @@ export const ProjectMembers = ({ projectId }: Props) => {
   }, [projectId]);
 
   useEffect(() => {
-    const init = async () => {
-      try {
-        const [project] = await Promise.all([
-          getOneProjectApi(projectId),
-          loadMembers(),
-        ]);
-        setMyRole(project.role ?? null);
-      } catch (error) {
-        console.error(error);
-      }
-    };
-
-    init();
-  }, [projectId, loadMembers]);
+    loadMembers().catch(console.error);
+  }, [loadMembers]);
 
   // кто-то добавил/исключил участника — обновляем список
   useEffect(() => {
@@ -127,30 +116,32 @@ export const ProjectMembers = ({ projectId }: Props) => {
 
   return (
     <>
-      <button className="members-trigger" onClick={() => setIsOpen(true)}>
+      <button className="btn btn-glass members-trigger" onClick={() => setIsOpen(true)}>
         <span className="members-avatars">
           {members.slice(0, 3).map((m) => (
-            <span key={m.id} className="members-avatar-sm" title={m.name}>
+            <span key={m.id} className="avatar members-avatar-sm" title={m.name}>
               {getInitials(m.name)}
             </span>
           ))}
         </span>
+        {members.length === 0 && <UsersIcon />}
         Участники · {members.length}
       </button>
 
-      {isOpen && (
+      {/* портал: шапка доски анимирована (transform), а это ломает position: fixed */}
+      {isOpen && createPortal(
         <div className="members-overlay" onClick={() => setIsOpen(false)}>
-          <div className="members-panel" onClick={(e) => e.stopPropagation()}>
+          <div className="members-panel glass" onClick={(e) => e.stopPropagation()}>
             <div className="members-panel-header">
               <h2>Участники</h2>
-              <button className="members-close" onClick={() => setIsOpen(false)}>
-                ×
+              <button className="icon-btn members-close" onClick={() => setIsOpen(false)} aria-label="Закрыть">
+                <CloseIcon />
               </button>
             </div>
 
             {error && <div className="members-error">{error}</div>}
 
-            <ul className="members-list">
+            <ul className="members-list stagger">
               {members.map((member) => {
                 const isSelf = member.id === user?.id;
                 const canRemove =
@@ -160,7 +151,7 @@ export const ProjectMembers = ({ projectId }: Props) => {
                   <li key={member.id} className="members-row">
                     <Link
                       to={isSelf ? "/profile" : `/users/${member.id}`}
-                      className="members-avatar"
+                      className="avatar members-avatar"
                     >
                       {getInitials(member.name)}
                     </Link>
@@ -207,10 +198,10 @@ export const ProjectMembers = ({ projectId }: Props) => {
                 ) : candidates.length === 0 ? (
                   <p className="members-muted">Все ваши коллеги уже в проекте</p>
                 ) : (
-                  <ul className="members-list">
+                  <ul className="members-list stagger">
                     {candidates.map((friend) => (
                       <li key={friend.id} className="members-row">
-                        <Link to={`/users/${friend.id}`} className="members-avatar">
+                        <Link to={`/users/${friend.id}`} className="avatar members-avatar">
                           {getInitials(friend.name)}
                         </Link>
                         <div className="members-info">
@@ -226,7 +217,7 @@ export const ProjectMembers = ({ projectId }: Props) => {
                           disabled={busyId !== null}
                           onClick={() => addMember(friend)}
                         >
-                          {busyId === friend.id ? "..." : "+ Добавить"}
+                          {busyId === friend.id ? "..." : <><PlusIcon /> Добавить</>}
                         </button>
                       </li>
                     ))}
@@ -235,7 +226,8 @@ export const ProjectMembers = ({ projectId }: Props) => {
               </div>
             )}
           </div>
-        </div>
+        </div>,
+        document.body,
       )}
     </>
   );

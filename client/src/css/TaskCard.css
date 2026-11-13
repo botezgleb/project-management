@@ -1,106 +1,69 @@
 .task-card {
-  background: var(--bg-primary);
-  border: 2px solid var(--border-color);
-  padding: 16px;
-  margin-bottom: 12px;
   position: relative;
-  box-shadow: 4px 4px 0 rgba(0, 0, 0, 0.1);
-  transition: all 0.2s ease;
   display: flex;
   align-items: flex-start;
+  gap: 4px;
   gap: 10px;
-  cursor: pointer;
-  border-radius: 0;
-  width: 100%;
-  box-sizing: border-box;
-  transform-origin: center;
-  will-change: transform, opacity;
+  padding: 12px 12px 12px 10px;
+  border-radius: var(--radius-md);
+  background: var(--card-bg);
+  border: 1px solid var(--glass-border);
+  box-shadow: 0 1px 2px rgba(16, 24, 64, 0.05), 0 4px 12px rgba(16, 24, 64, 0.04),
+    var(--glass-highlight);
+  cursor: grab;
+  user-select: none;
+  -webkit-tap-highlight-color: transparent;
+  touch-action: manipulation;
+  transition: background var(--dur-fast) ease, box-shadow var(--dur) ease,
+    opacity var(--dur) ease;
+  /* backwards, не both: иначе анимация навсегда перебьёт transform от dnd-kit */
+  animation: pop-in var(--dur-slow) var(--ease-out) backwards;
 }
 
 .task-card:hover {
-  box-shadow: 7px 7px 0 rgba(0, 0, 0, 0.1);
+  background: var(--card-bg-hover);
+  box-shadow: 0 2px 4px rgba(16, 24, 64, 0.06), 0 10px 24px rgba(16, 24, 64, 0.08),
+    var(--glass-highlight);
 }
 
 .task-card:active {
   cursor: grabbing;
 }
 
-.task-card::after {
-  content: '';
-  position: absolute;
-  bottom: 4px;
-  right: 4px;
-  width: 20px;
-  height: 20px;
-  background: repeating-linear-gradient(
-    45deg,
-    transparent,
-    transparent 4px,
-    rgba(255, 225, 90, 0.15) 4px,
-    rgba(255, 225, 90, 0.15) 8px
-  );
-  opacity: 0;
-  transition: opacity 0.3s ease;
-  pointer-events: none;
+/* слот, из которого подняли карточку */
+.task-card.is-placeholder {
+  background: var(--fill);
+  border: 1.5px dashed var(--separator);
+  box-shadow: none;
 }
 
-.task-card:hover::after {
-  opacity: 1;
-}
-
-.task-card.editing {
-  cursor: default;
-  padding: 20px;
-  background: #fafaf0;
-}
-
-.task-card.editing:hover {
-  transform: none;
-  box-shadow: 4px 4px 0 rgba(0, 0, 0, 0.1);
-}
-
-.task-card.editing::after {
+.task-card.is-placeholder > * {
   opacity: 0;
 }
 
 .task-card.deleting {
-  opacity: 0.5;
+  opacity: 0.4;
   pointer-events: none;
-  filter: grayscale(0.5);
 }
 
-.task-card.overlay {
-  opacity: 0.95 !important;
-  box-shadow: 8px 8px 0 rgba(0, 0, 0, 0.15) !important;
-  transform: rotate(1deg) scale(1.02) !important;
-  pointer-events: none;
-  margin: 0;
-}
-
-.task-drag-handle {
-  width: 20px;
-  height: 20px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  cursor: grab;
-  color: #999;
-  font-size: 16px;
-  letter-spacing: 2px;
-  user-select: none;
-  flex-shrink: 0;
+.task-grip {
+  width: 16px;
+  height: 16px;
   margin-top: 2px;
-  transition: color 0.2s ease;
-  touch-action: none;
+  flex-shrink: 0;
+  color: var(--text-tertiary);
+  opacity: 0;
+  transition: opacity var(--dur-fast) ease;
 }
 
-.task-drag-handle:hover {
-  color: #666;
+.task-grip svg {
+  width: 100%;
+  height: 100%;
 }
 
-.task-drag-handle:active {
-  cursor: grabbing;
-  color: #000;
+.task-card:hover .task-grip,
+.task-card.drag-overlay-item .task-grip {
+  opacity: 1;
 }
 
 .task-content {
@@ -109,278 +72,139 @@
 }
 
 .task-title {
-  font-family: "Funnel Display", sans-serif;
-  font-size: 16px;
-  font-weight: 600;
-  margin: 0 0 6px 0;
-  color: #000;
+  font-size: 14px;
+  font-weight: 590;
+  line-height: 1.35;
+  letter-spacing: -0.01em;
   word-break: break-word;
-  line-height: 1.4;
-  text-transform: uppercase;
-  letter-spacing: -0.3px;
 }
 
 .task-description {
+  margin-top: 4px;
   font-size: 13px;
-  color: #555;
-  margin: 0;
+  line-height: 1.4;
+  color: var(--text-secondary);
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
   word-break: break-word;
-  line-height: 1.5;
-  font-family: "Montserrat", sans-serif;
-  padding-left: 8px;
-  border-left: 2px solid rgba(0, 0, 0, 0.15);
 }
 
+/* действия всплывают поверх карточки и не отнимают ширину у текста */
 .task-actions {
-  display: flex;
-  gap: 6px;
-  opacity: 0;
-  transition: opacity 0.2s ease;
-  flex-shrink: 0;
-  align-self: center;
-}
-
-.task-card:hover .task-actions {
-  opacity: 1;
-}
-
-.edit-task-btn,
-.delete-task-btn {
-  width: 30px;
-  height: 30px;
-  border: 2px solid var(--border-color);
-  background: var(--bg-primary);
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 15px;
-  transition: all 0.2s ease;
-  position: relative;
-  overflow: hidden;
-  box-shadow: 2px 2px 0 rgba(0, 0, 0, 0.1);
-  color: #000;
-  padding: 0;
-  border-radius: 0;
-}
-
-.delete-task-btn {
-  font-size: 24px;
-}
-
-.edit-task-btn::before,
-.delete-task-btn::before {
-  content: '';
   position: absolute;
-  top: 0;
-  left: -100%;
-  width: 100%;
-  height: 100%;
-  background: #000;
-  transition: left 0.2s ease;
-  z-index: -1;
-}
-
-.edit-task-btn:hover,
-.delete-task-btn:hover {
-  color: white;
-  transform: translate(-2px, -2px);
-  box-shadow: 4px 4px 0 rgba(0, 0, 0, 0.1);
-}
-
-.edit-task-btn:hover {
-  background: #ffe15a;
-  border-color: #ffe15a;
-}
-
-.edit-task-btn:hover::before {
-  background: #ffe15a;
-  left: 0;
-}
-
-.delete-task-btn:hover {
-  background: #ff4444;
-  border-color: #ff4444;
-}
-
-.delete-task-btn:hover::before {
-  background: #ff4444;
-  left: 0;
-}
-
-.delete-task-btn:disabled {
-  opacity: 0.5;
-  cursor: not-allowed;
+  top: 6px;
+  right: 6px;
+  display: flex;
+  gap: 0;
+  padding: 2px;
+  border-radius: var(--radius-pill);
+  background: var(--glass-bg-strong);
+  -webkit-backdrop-filter: var(--glass-blur);
+  backdrop-filter: var(--glass-blur);
+  box-shadow: 0 2px 10px rgba(16, 24, 64, 0.1), var(--glass-highlight);
+  opacity: 0;
+  transform: scale(0.9);
   pointer-events: none;
+  transition: opacity var(--dur-fast) ease, transform var(--dur) var(--ease-spring);
 }
 
-.task-edit-form {
-  width: 100%;
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
+.task-actions .icon-btn {
+  width: 28px;
+  height: 28px;
 }
 
-.task-edit-input,
-.task-edit-textarea {
-  width: 100%;
-  padding: 10px 12px;
-  border: 2px solid var(--border-color);
-  background: var(--bg-primary);
-  font-family: "Montserrat", sans-serif;
-  font-size: 14px;
-  transition: all 0.2s ease;
-  outline: none;
-  box-sizing: border-box;
-  border-radius: 0;
+.task-actions .icon-btn svg {
+  width: 14px;
+  height: 14px;
 }
 
-.task-edit-input:focus,
-.task-edit-textarea:focus {
-  transform: translate(-3px, -3px);
-  box-shadow: 5px 5px 0 rgba(0, 0, 0, 0.1);
+.task-card:hover .task-actions,
+.task-actions:focus-within {
+  opacity: 1;
+  transform: none;
+  pointer-events: auto;
 }
 
-.task-edit-input::placeholder,
-.task-edit-textarea::placeholder {
-  color: #aaa;
-  font-size: 13px;
-  text-transform: uppercase;
-  letter-spacing: 0.3px;
+.task-card.is-placeholder .task-actions {
+  display: none;
 }
 
-.task-edit-textarea {
-  resize: vertical;
-  min-height: 70px;
-  font-family: "Montserrat", sans-serif;
-}
-
-.task-edit-actions {
-  display: flex;
-  gap: 10px;
-  margin-top: 5px;
-}
-
-.task-edit-actions button {
-  flex: 1;
-  padding: 10px;
-  border: 2px solid var(--border-color);
-  background: var(--bg-primary);
-  font-family: "Montserrat", sans-serif;
-  font-size: 13px;
-  text-transform: uppercase;
-  font-weight: 600;
-  letter-spacing: 0.5px;
-  cursor: pointer;
-  transition: all 0.2s ease;
-  position: relative;
-  overflow: hidden;
-  border-radius: 0;
-}
-
-.task-edit-actions button:first-child {
-  background: #000;
-  color: white;
-  border-color: #000;
-}
-
-.task-edit-actions button:first-child:hover {
-  background: #222;
-  transform: translate(-2px, -2px);
-  box-shadow: 4px 4px 0 rgba(0, 0, 0, 0.1);
-}
-
-.task-edit-actions button:last-child {
-  background: transparent;
-  color: #000;
-}
-
-.task-edit-actions button:last-child:hover {
-  background: rgba(0, 0, 0, 0.05);
-  transform: translate(-2px, -2px);
-  box-shadow: 4px 4px 0 rgba(0, 0, 0, 0.1);
-}
-
-.tasks-list {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-  min-height: 50px;
-  width: 100%;
-}
-
-.tasks-empty {
-  padding: 30px 20px;
-  text-align: center;
-  color: #999;
-  font-size: 13px;
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
-  border: 2px dashed #ddd;
-  margin: 10px 0;
-  background: rgba(0, 0, 0, 0.02);
-}
-
-.drag-overlay {
-  cursor: grabbing !important;
-  z-index: 999;
-}
-
-@media (max-width: 768px) {
-  .task-card {
-    padding: 14px;
-  }
-
-  .task-title {
-    font-size: 15px;
-  }
-
-  .task-description {
-    font-size: 12px;
-  }
-
-  .task-actions {
+@media (hover: none) {
+  .task-grip {
     opacity: 1;
   }
 
-  .edit-task-btn,
-  .delete-task-btn {
-    width: 28px;
-    height: 28px;
-    font-size: 14px;
-  }
-
-  .task-edit-input,
-  .task-edit-textarea {
-    padding: 8px 10px;
-    font-size: 13px;
-  }
-
-  .task-edit-actions button {
-    padding: 8px;
-    font-size: 12px;
+  /* на тач-экранах действия доступны в модалке задачи */
+  .task-actions {
+    display: none;
   }
 }
 
-@media (max-width: 480px) {
-  .task-card {
-    flex-wrap: wrap;
-    padding: 12px;
-  }
 
-  .task-drag-handle {
-    width: 100%;
-    justify-content: center;
-    margin-bottom: 5px;
-    border-bottom: 1px dashed #ddd;
-    padding-bottom: 5px;
-  }
+/* ============================================================
+   Выполнение, мета-строка, блокировка
+   ============================================================ */
+.task-card .task-check {
+  margin-top: 0;
+}
 
-  .task-actions {
-    width: 100%;
-    justify-content: flex-end;
-    margin-top: 8px;
-    padding-top: 8px;
-    border-top: 1px solid #eee;
-  }
+.task-card.is-completed .task-title {
+  color: var(--text-tertiary);
+  text-decoration: line-through;
+  text-decoration-color: color-mix(in srgb, var(--text-tertiary) 60%, transparent);
+}
+
+.task-card.is-completed .task-description {
+  color: var(--text-tertiary);
+}
+
+.task-card.is-blocked {
+  background: color-mix(in srgb, var(--warning) 6%, var(--card-bg));
+}
+
+.task-meta {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-top: 8px;
+  flex-wrap: wrap;
+}
+
+.task-meta-spacer {
+  flex: 1;
+}
+
+.task-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  height: 22px;
+  padding: 0 8px;
+  border-radius: var(--radius-pill);
+  background: var(--fill);
+  color: var(--text-secondary);
+  font-size: 12px;
+  font-weight: 560;
+  font-variant-numeric: tabular-nums;
+}
+
+.task-pill svg {
+  width: 12px;
+  height: 12px;
+}
+
+.task-pill-done {
+  background: var(--success-soft);
+  color: var(--success);
+}
+
+.task-pill-blocked {
+  background: var(--warning-soft);
+  color: color-mix(in srgb, var(--warning) 75%, var(--text));
+}
+
+.task-card .avatar-stack-item {
+  box-shadow: 0 0 0 2px var(--card-bg-hover);
 }

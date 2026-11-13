@@ -1,0 +1,105 @@
+.my-tasks-groups {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.my-tasks-group {
+  border-radius: var(--radius-xl);
+  padding: 12px;
+}
+
+.my-tasks-project {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 10px 12px;
+  color: var(--text);
+  font-size: 17px;
+  font-weight: 650;
+  letter-spacing: -0.015em;
+}
+
+.my-tasks-project-icon {
+  width: 30px;
+  height: 30px;
+  border-radius: 9px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 14px;
+  font-weight: 700;
+  color: #fff;
+  background: var(--accent-gradient);
+}
+
+.my-tasks-project-icon.sub {
+  background: var(--fill-hover);
+  color: var(--text-secondary);
+}
+
+.my-tasks-chevron {
+  width: 16px;
+  height: 16px;
+  color: var(--text-tertiary);
+  transition: transform var(--dur) var(--ease-out);
+}
+
+a.my-tasks-project:hover .my-tasks-chevron {
+  transform: translateX(3px);
+  color: var(--accent);
+}
+
+.my-tasks-list {
+  list-style: none;
+  border-radius: var(--radius-md);
+  background: var(--card-bg);
+  overflow: hidden;
+}
+
+.my-task {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 12px 14px;
+  cursor: pointer;
+  transition: background var(--dur-fast) ease;
+}
+
+.my-task + .my-task {
+  border-top: 1px solid var(--separator);
+}
+
+.my-task:hover {
+  background: var(--fill);
+}
+
+.my-task-body {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.my-task-title {
+  font-size: 15px;
+  font-weight: 560;
+  word-break: break-word;
+}
+
+.my-task.is-completed .my-task-title {
+  color: var(--text-tertiary);
+  text-decoration: line-through;
+}
+
+.my-task-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  font-size: 13px;
+}
+
+.my-tasks-empty {
+  border-radius: var(--radius-xl);
+}

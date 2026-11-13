@@ -1,26 +1,26 @@
 .project-page {
-  min-height: calc(100vh - 80px);
-  background: #f7f9fc;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
 }
 
 .project-error {
-  min-height: calc(100vh - 80px);
+  flex: 1;
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  background: #f7f9fc;
-  font-family: "Montserrat", sans-serif;
+  gap: 8px;
+  padding: 80px 24px;
+  text-align: center;
 }
 
 .project-error h2 {
-  font-family: "Funnel Display", sans-serif;
-  font-size: 32px;
-  color: #172b4d;
-  margin-bottom: 12px;
+  font-size: 28px;
+  font-weight: 700;
+  letter-spacing: -0.02em;
 }
 
 .project-error p {
-  color: #5e6c84;
-  font-size: 16px;
+  color: var(--text-secondary);
 }

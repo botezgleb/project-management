@@ -1,105 +1,127 @@
-import { useState, useEffect } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { useEffect, useState } from "react";
+import { Link, NavLink, useNavigate } from "react-router-dom";
 import { useAuth } from "../../hooks/useAuth";
 import { useRealtime } from "../../hooks/useRealtime";
+import { getInitials } from "../../utils/user";
 import logoPng from "../../assets/logo.png";
 
 export const NavBar = () => {
-  const { isAuth, logout } = useAuth();
+  const { isAuth, user, logout } = useAuth();
   const { incomingCount } = useRealtime();
   const navigate = useNavigate();
   const [isOpen, setIsOpen] = useState(false);
-  const [isMobile, setIsMobile] = useState(window.innerWidth <= 768);
+  const [scrolled, setScrolled] = useState(false);
 
   useEffect(() => {
-    const handleResize = () => {
-      setIsMobile(window.innerWidth <= 768);
-      if (window.innerWidth > 768) {
-        setIsOpen(false);
-      }
-    };
-
-    window.addEventListener("resize", handleResize);
-    return () => window.removeEventListener("resize", handleResize);
+    const onScroll = () => setScrolled(window.scrollY > 8);
+    onScroll();
+    window.addEventListener("scroll", onScroll, { passive: true });
+    return () => window.removeEventListener("scroll", onScroll);
   }, []);
 
   const handleLogout = () => {
     logout();
     navigate("/");
-    setIsOpen(false);
   };
 
-  const handleLinkClick = () => {
-    setIsOpen(false);
-  };
+  const linkClass = ({ isActive }: { isActive: boolean }) =>
+    `nav-link ${isActive ? "active" : ""}`;
 
   return (
-    <nav>
-      <div className="logo">
-        <Link to="/" onClick={handleLinkClick}>
+    <header className={`nav-wrap ${scrolled ? "scrolled" : ""}`}>
+      <nav className="nav glass">
+        <Link to="/" className="nav-logo">
           <img src={logoPng} alt="" />
+          <span>
+            NON<b>SENSE</b>
+          </span>
         </Link>
-        <Link to="/" onClick={handleLinkClick}>
-          <h3>NON<span>SENSE</span></h3>
-        </Link>
-      </div>
 
-      {isMobile && (
-        <button 
-          className={`burger-menu ${isOpen ? 'open' : ''}`} 
-          onClick={() => setIsOpen(!isOpen)}
+        <button
+          className={`nav-burger ${isOpen ? "open" : ""}`}
+          onClick={() => setIsOpen((v) => !v)}
+          aria-label="Меню"
+          aria-expanded={isOpen}
         >
-          <span></span>
-          <span></span>
-          <span></span>
+          <span />
+          <span />
         </button>
-      )}
 
-      <div className={`nav-menu ${isOpen ? 'open' : ''}`}>
-        <ul>
-          {isAuth && (
-            <>
+        <div
+          className={`nav-menu ${isOpen ? "open" : ""}`}
+          // закрываем мобильное меню при переходе по любой ссылке/кнопке
+          onClick={(e) => {
+            if ((e.target as HTMLElement).closest("a, button")) setIsOpen(false);
+          }}
+        >
+          <ul className="nav-links">
+            {isAuth ? (
+              <>
+                <li>
+                  <NavLink to="/projects" className={linkClass}>
+                    Проекты
+                  </NavLink>
+                </li>
+                <li>
+                  <NavLink to="/my-tasks" className={linkClass}>
+                    Мои задачи
+                  </NavLink>
+                </li>
+                <li>
+                  <NavLink to="/colleagues" className={linkClass}>
+                    Коллеги
+                    {incomingCount > 0 && (
+                      <span className="nav-badge" title="Входящие заявки">
+                        {incomingCount}
+                      </span>
+                    )}
+                  </NavLink>
+                </li>
+                <li>
+                  <NavLink to="/about" className={linkClass}>
+                    О нас
+                  </NavLink>
+                </li>
+              </>
+            ) : (
               <li>
-                <Link to="/projects" onClick={handleLinkClick}>Проекты</Link>
+                <NavLink to="/about" className={linkClass}>
+                  О нас
+                </NavLink>
               </li>
-              <li>
-                <Link to="/about" onClick={handleLinkClick}>О нас</Link>
-              </li>
-              <li>
-                <Link to="/colleagues" onClick={handleLinkClick} className="nav-link-with-badge">
-                  Коллеги
-                  {incomingCount > 0 && (
-                    <span className="nav-badge" title="Входящие заявки">
-                      {incomingCount}
-                    </span>
-                  )}
-                </Link>
-              </li>
-              <li>
-                <Link to="/profile" onClick={handleLinkClick}>Профиль</Link>
-              </li>
-              <li>
-                <button onClick={handleLogout} className="logout-btn">
+            )}
+          </ul>
+
+          <div className="nav-actions">
+            {isAuth ? (
+              <>
+                <NavLink
+                  to="/profile"
+                  className={({ isActive }) => `nav-profile ${isActive ? "active" : ""}`}
+                  title="Профиль"
+                >
+                  <span className="avatar nav-avatar">
+                    {getInitials(user?.name || user?.email || "?")}
+                  </span>
+                  <span className="nav-profile-label">Профиль</span>
+                </NavLink>
+                <button onClick={handleLogout} className="btn btn-sm nav-logout">
                   Выйти
                 </button>
-              </li>
-            </>
-          )}
-          {!isAuth && (
-            <>
-              <li>
-                <Link to="/about" onClick={handleLinkClick}>О нас</Link>
-              </li>
-              <li>
-                <Link to="/login" onClick={handleLinkClick}>Войти</Link>
-              </li>
-              <li>
-                <Link to="/register" onClick={handleLinkClick}>Зарегистрироваться</Link>
-              </li>
-            </>
-          )}
-        </ul>
-      </div>
-    </nav>
+              </>
+            ) : (
+              <>
+                <Link to="/login" className="btn btn-sm">
+                  Войти
+                </Link>
+                <Link to="/register" className="btn btn-sm btn-primary">
+                  Регистрация
+                </Link>
+              </>
+            )}
+          </div>
+        </div>
+      </nav>
+    </header>
   );
 };

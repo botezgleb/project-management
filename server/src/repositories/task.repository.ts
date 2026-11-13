@@ -1,5 +1,6 @@
 import { Prisma } from "@prisma/client";
 import { prisma } from "../utils/prisma";
+import { taskInclude } from "../services/taskDto";
 
 export const createTask = async (data: {
   title: string;
@@ -17,6 +18,29 @@ export const getTasks = async (columnId: number) => {
   return await prisma.task.findMany({
     where: { columnId },
     orderBy: { position: "asc" },
+  });
+};
+
+export const getTasksWithRelations = async (columnId: number) => {
+  return await prisma.task.findMany({
+    where: { columnId },
+    orderBy: { position: "asc" },
+    include: taskInclude,
+  });
+};
+
+export const getTaskWithRelations = async (taskId: number) => {
+  return await prisma.task.findUnique({
+    where: { id: taskId },
+    include: taskInclude,
+  });
+};
+
+export const getTasksWithRelationsByIds = async (taskIds: number[]) => {
+  if (taskIds.length === 0) return [];
+  return await prisma.task.findMany({
+    where: { id: { in: taskIds } },
+    include: taskInclude,
   });
 };
 

@@ -1,12 +1,9 @@
-import React, { useEffect, useCallback, useReducer } from "react";
-import {
-  DndContext,
-  closestCenter,
-  PointerSensor,
-  useSensor,
-  useSensors,
-} from "@dnd-kit/core";
+import React, { useEffect, useCallback, useReducer, useState } from "react";
+import { createPortal } from "react-dom";
+import { useSearchParams } from "react-router-dom";
+import { DndContext, DragOverlay, closestCenter } from "@dnd-kit/core";
 import type { DragEndEvent, DragStartEvent } from "@dnd-kit/core";
+import { restrictToHorizontalAxis } from "@dnd-kit/modifiers";
 import {
   arrayMove,
   SortableContext,
@@ -23,13 +20,20 @@ import {
 import {
   deleteTaskApi,
   getTasksApi,
-  updateTaskApi,
   reorderTaskApi,
 } from "../../services/api/tasks.api";
 import type { Column } from "../../types/column";
 import type { Task } from "../../types/task";
 import { boardReducer, initialState } from "./boardReducer";
-import ColumnComponent from "./Column";
+import ColumnComponent, { ColumnOverlay } from "./Column";
+import { dropAnimation, useBoardSensors } from "./dnd";
+import { getOneProjectApi } from "../../services/api/projects.api";
+import { CloseIcon, PlusIcon } from "../ui/Icons";
+import { BoardContext } from "../../contexts/board/BoardContext";
+import { useAuth } from "../../hooks/useAuth";
+import { useProjectMembers } from "../../hooks/useProjectMembers";
+import { ProjectTabs } from "../project/ProjectTabs";
+import TaskModal from "./TaskModal";
 import "../../css/Board.css";
 import { socket } from "../../socket/socket";
 import { ProjectMembers } from "../project/ProjectMembers";
@@ -40,13 +44,30 @@ interface Props {
 
 export const Board = ({ projectId }: Props) => {
   const [state, dispatch] = useReducer(boardReducer, initialState);
-  const { columns, loading, error, adding, newColumnName, activeTaskId } = state;
+  const { columns, loading, error, adding, newColumnName } = state;
 
-  const columnSensors = useSensors(
-    useSensor(PointerSensor, {
-      activationConstraint: { distance: 8 },
-    }),
+  const [activeColumnId, setActiveColumnId] = useState<number | null>(null);
+  const [onlyMine, setOnlyMine] = useState(false);
+  const [searchParams] = useSearchParams();
+  // ссылка вида /projects/1?task=5 (например, из «Моих задач») сразу открывает задачу
+  const [openTaskId, setOpenTaskId] = useState<number | null>(
+    () => Number(searchParams.get("task")) || null,
   );
+  const closeTask = useCallback(() => setOpenTaskId(null), []);
+  const { user } = useAuth();
+  const { members } = useProjectMembers(projectId);
+  const [project, setProject] = useState<{
+    name?: string;
+    description?: string | null;
+    role?: "OWNER" | "MEMBER";
+  } | null>(null);
+
+  const columnSensors = useBoardSensors(8);
+  const activeColumn = columns.find((c) => c.id === activeColumnId) ?? null;
+
+  useEffect(() => {
+    getOneProjectApi(projectId).then(setProject).catch(console.error);
+  }, [projectId]);
 
   const loadColumns = useCallback(async () => {
     try {
@@ -119,8 +140,11 @@ export const Board = ({ projectId }: Props) => {
     };
 
     const handleColumnUpdated = (column: Column) => {
-      console.log("SOCKET: column-updated received", column);
-      dispatch({ type: "UPDATE_COLUMN", payload: { id: column.id, name: column.name } });
+      dispatch({ type: "UPDATE_COLUMN", payload: column });
+    };
+
+    const handleTasksUpdated = (tasks: Task[]) => {
+      dispatch({ type: "UPSERT_TASKS", payload: tasks });
     };
 
     const handleColumnDeleted = (deletedColumn: { id: number }) => {
@@ -145,6 +169,7 @@ export const Board = ({ projectId }: Props) => {
     socket.on("column-updated", handleColumnUpdated);
     socket.on("column-deleted", handleColumnDeleted);
     socket.on("columns-reordered", handleColumnsReordered);
+    socket.on("tasks-updated", handleTasksUpdated);
 
     return () => {
       socket.off("task-created", handleTaskCreated);
@@ -155,6 +180,7 @@ export const Board = ({ projectId }: Props) => {
       socket.off("column-updated", handleColumnUpdated);
       socket.off("column-deleted", handleColumnDeleted);
       socket.off("columns-reordered", handleColumnsReordered);
+      socket.off("tasks-updated", handleTasksUpdated);
     };
   }, []);
 
@@ -174,7 +200,12 @@ export const Board = ({ projectId }: Props) => {
     };
   }, []);
 
+  const handleColumnDragStart = (event: DragStartEvent) => {
+    setActiveColumnId(event.active.id as number);
+  };
+
   const handleColumnDragEnd = async (event: DragEndEvent) => {
+    setActiveColumnId(null);
     const { active, over } = event;
     if (!over || active.id === over.id) return;
 
@@ -195,16 +226,11 @@ export const Board = ({ projectId }: Props) => {
     }
   };
 
-  const handleTaskDragStart = (event: DragStartEvent) => {
-    dispatch({ type: "SET_ACTIVE_TASK", payload: event.active.id as number });
-  };
-
   const handleTaskDragEnd = async (
     event: DragEndEvent,
     columnId: number,
     newPosition: number,
   ) => {
-    dispatch({ type: "SET_ACTIVE_TASK", payload: null });
     const { active, over } = event;
     if (!over || active.id === over.id) return;
 
@@ -263,15 +289,6 @@ export const Board = ({ projectId }: Props) => {
     await deleteTaskApi(projectId, columnId, taskId);
   };
 
-  const handleTaskUpdate = async (
-    columnId: number,
-    taskId: number,
-    title: string,
-    description: string,
-  ) => {
-    await updateTaskApi(title, description, projectId, columnId, taskId);
-  };
-
   const handleAddClick = (e: React.MouseEvent) => {
     e.preventDefault();
     dispatch({ type: "SET_ADDING", payload: true });
@@ -285,92 +302,134 @@ export const Board = ({ projectId }: Props) => {
 
   if (loading) {
     return (
-      <div className="board-loading">
-        <div className="loader"></div>
+      <div className="page-loading">
+        <div className="spinner"></div>
+        <p>Загрузка доски...</p>
       </div>
     );
   }
 
   return (
-    <div className="board">
-      <div className="board-header">
-        <h2>
-          Project <span>Board</span>
-        </h2>
-        <ProjectMembers projectId={projectId} />
+    <div className="board page">
+      <div className="board-header page-header">
+        <div>
+          <h1 className="page-title">{project?.name || "Доска"}</h1>
+          {project?.description && (
+            <p className="page-subtitle">{project.description}</p>
+          )}
+        </div>
+        <ProjectMembers projectId={projectId} myRole={project?.role ?? null} />
+      </div>
+
+      <div className="board-toolbar">
+        <ProjectTabs projectId={projectId} />
+        <button
+          className={`chip-toggle ${onlyMine ? "active" : ""}`}
+          onClick={() => setOnlyMine((v) => !v)}
+          aria-pressed={onlyMine}
+        >
+          <span className="chip-toggle-dot" />
+          Только мои задачи
+        </button>
       </div>
 
       {error && (
-        <div className="board-error">
-          <p>{error}</p>
+        <div className="alert board-alert">
+          <span>{error}</span>
           <button onClick={() => dispatch({ type: "SET_ERROR", payload: null })}>
-            Закрыть
+            <CloseIcon width={16} height={16} />
           </button>
         </div>
       )}
 
-      <DndContext
-        sensors={columnSensors}
-        collisionDetection={closestCenter}
-        onDragEnd={handleColumnDragEnd}
+      <BoardContext.Provider
+        value={{
+          projectId,
+          myId: user?.id ?? null,
+          members,
+          columns,
+          onlyMine,
+          reportError: (message) => dispatch({ type: "SET_ERROR", payload: message }),
+          openTask: setOpenTaskId,
+        }}
       >
-        <SortableContext
-          items={columns.map((c) => c.id)}
-          strategy={horizontalListSortingStrategy}
+        <DndContext
+          sensors={columnSensors}
+          collisionDetection={closestCenter}
+          onDragStart={handleColumnDragStart}
+          onDragEnd={handleColumnDragEnd}
+          onDragCancel={() => setActiveColumnId(null)}
         >
-          <div className="board-columns">
-            {columns.map((column) => (
-              <ColumnComponent
-                key={column.id}
-                column={column}
-                projectId={projectId}
-                onDelete={handleDeleteColumn}
-                onUpdate={handleUpdateColumn}
-                onTaskDelete={handleTaskDelete}
-                onTaskUpdate={handleTaskUpdate}
-                onTaskDragEnd={handleTaskDragEnd}
-                onTaskOrderChange={handleTaskOrderChange}
-                activeTaskId={activeTaskId}
-                onTaskDragStart={handleTaskDragStart}
-              />
-            ))}
-
-            {adding ? (
-              <div className="add-column-form">
-                <input
-                  type="text"
-                  value={newColumnName}
-                  onChange={(e) => 
-                    dispatch({ type: "SET_NEW_COLUMN_NAME", payload: e.target.value })
-                  }
-                  onKeyDown={(e: React.KeyboardEvent) => {
-                    if (e.key === "Enter") handleAddColumn();
-                    if (e.key === "Escape") handleCancelAdd(e);
-                  }}
-                  placeholder="Название колонки"
-                  autoFocus
+          <SortableContext
+            items={columns.map((c) => c.id)}
+            strategy={horizontalListSortingStrategy}
+          >
+            <div className="board-columns">
+              {columns.map((column) => (
+                <ColumnComponent
+                  key={column.id}
+                  column={column}
+                  projectId={projectId}
+                  onDelete={handleDeleteColumn}
+                  onUpdate={handleUpdateColumn}
+                  onTaskDelete={handleTaskDelete}
+                  onTaskDragEnd={handleTaskDragEnd}
+                  onTaskOrderChange={handleTaskOrderChange}
                 />
-                <div className="add-column-actions">
-                  <button onClick={handleAddColumn} type="button">
-                    Добавить
-                  </button>
-                  <button onClick={handleCancelAdd} type="button">
-                    Отмена
-                  </button>
+              ))}
+
+              {adding ? (
+                <div className="add-column-form glass">
+                  <input
+                    className="input"
+                    type="text"
+                    value={newColumnName}
+                    onChange={(e) => 
+                      dispatch({ type: "SET_NEW_COLUMN_NAME", payload: e.target.value })
+                    }
+                    onKeyDown={(e: React.KeyboardEvent) => {
+                      if (e.key === "Enter") handleAddColumn();
+                      if (e.key === "Escape") handleCancelAdd(e);
+                    }}
+                    placeholder="Название колонки"
+                    autoFocus
+                  />
+                  <div className="add-column-actions">
+                    <button className="btn btn-sm" onClick={handleCancelAdd} type="button">
+                      Отмена
+                    </button>
+                    <button
+                      className="btn btn-sm btn-primary"
+                      onClick={handleAddColumn}
+                      type="button"
+                      disabled={!newColumnName.trim()}
+                    >
+                      Добавить
+                    </button>
+                  </div>
                 </div>
-              </div>
-            ) : (
-              <button
-                className="add-column-btn"
-                onClick={handleAddClick}
-                type="button"
-              >
-                <span>+</span> Добавить колонку
-              </button>
-            )}
-          </div>
-        </SortableContext>
-      </DndContext>
+              ) : (
+                <button
+                  className="add-column-btn"
+                  onClick={handleAddClick}
+                  type="button"
+                >
+                  <PlusIcon /> Добавить колонку
+                </button>
+              )}
+            </div>
+          </SortableContext>
+
+          {createPortal(
+            <DragOverlay dropAnimation={dropAnimation} modifiers={[restrictToHorizontalAxis]}>
+              {activeColumn ? <ColumnOverlay column={activeColumn} /> : null}
+            </DragOverlay>,
+            document.body,
+          )}
+        </DndContext>
+
+        {openTaskId !== null && <TaskModal taskId={openTaskId} onClose={closeTask} />}
+      </BoardContext.Provider>
     </div>
   );
 };

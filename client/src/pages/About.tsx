@@ -12,8 +12,9 @@ export const About = () => {
 
   return (
     <div className="about-page">
+      <div className="page about-content">
       <div className="about-hero">
-        <h1>
+        <h1 className="page-title">
           О <span>нас</span>
         </h1>
         <p>
@@ -22,7 +23,7 @@ export const About = () => {
         </p>
       </div>
 
-      <div className="about-mission">
+      <div className="about-mission glass">
         <div className="mission-content">
           <h2>
             Наша <span>миссия</span>
@@ -62,29 +63,29 @@ export const About = () => {
           За каждым продуктом стоят люди. Мы - небольшая, но страстная команда
           разработчиков, дизайнеров и энтузиастов, объединенных общей целью.
         </p>
-        <div className="team-grid">
-          <div className="team-member">
+        <div className="team-grid stagger">
+          <div className="team-member glass">
             <div className="member-photo">
               <img src={walter} alt="" />
             </div>
             <h3>Владимир Белый</h3>
             <p>Основатель, Lead Developer</p>
           </div>
-          <div className="team-member">
+          <div className="team-member glass">
             <div className="member-photo">
               <img src={jesse} alt="" />
             </div>
             <h3>Евгений Розов</h3>
             <p>UX/UI Дизайнер</p>
           </div>
-          <div className="team-member">
+          <div className="team-member glass">
             <div className="member-photo">
               <img src={saul} alt="" />
             </div>
             <h3>Александр Добрый</h3>
             <p>Backend Developer</p>
           </div>
-          <div className="team-member">
+          <div className="team-member glass">
             <div className="member-photo">
               <img src={barsuk} alt="" />
             </div>
@@ -94,20 +95,19 @@ export const About = () => {
         </div>
       </div>
 
-      <div className="about-cta">
+      <div className="about-cta glass">
         <h2>Готовы начать?</h2>
         <p>
           Присоединяйтесь к сообществу NONSENSE и управляйте проектами с
           удовольствием
         </p>
-        <Link to={isAuth ? "/projects" : "/register"} className="cta-button">
-          <span className="top-key"></span>
-          <span className="text">
-            {isAuth ? "К проектам" : "Зарегистрироваться"}
-          </span>
-          <span className="bottom-key-1"></span>
-          <span className="bottom-key-2"></span>
+        <Link
+          to={isAuth ? "/projects" : "/register"}
+          className="btn btn-primary btn-lg"
+        >
+          {isAuth ? "К проектам" : "Зарегистрироваться"}
         </Link>
+      </div>
       </div>
       <Footer />
     </div>

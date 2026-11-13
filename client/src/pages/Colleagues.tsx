@@ -19,6 +19,7 @@ import type {
 import { RelationActions } from "../components/friends/RelationActions";
 import { useRealtime } from "../hooks/useRealtime";
 import { socket } from "../socket/socket";
+import { CloseIcon, SearchIcon } from "../components/ui/Icons";
 import { getErrorMessage, getInitials } from "../utils/user";
 import "../css/Colleagues.css";
 
@@ -41,7 +42,7 @@ const UserRow = ({
   children?: React.ReactNode;
 }) => (
   <li className="colleague-row">
-    <Link to={`/users/${user.id}`} className="colleague-avatar">
+    <Link to={`/users/${user.id}`} className="avatar colleague-avatar">
       {getInitials(user.name)}
     </Link>
     <div className="colleague-info">
@@ -220,8 +221,8 @@ export const Colleagues = () => {
 
   if (loading) {
     return (
-      <div className="colleagues-loading">
-        <div className="loader"></div>
+      <div className="page-loading">
+        <div className="spinner"></div>
         <p>Загрузка коллег...</p>
       </div>
     );
@@ -230,30 +231,32 @@ export const Colleagues = () => {
   const trimmedQuery = query.trim().replace(/^@/, "");
 
   return (
-    <div className="colleagues-page">
-      <div className="colleagues-header">
-        <h1>
+    <div className="page colleagues-page">
+      <div className="page-header">
+        <h1 className="page-title">
           Your <span>Colleagues</span>
         </h1>
       </div>
 
       {error && (
-        <div className="colleagues-error">
+        <div className="alert colleagues-error">
           <span>{error}</span>
-          <button onClick={() => setError(null)}>×</button>
+          <button onClick={() => setError(null)} aria-label="Закрыть">
+            <CloseIcon width={16} height={16} />
+          </button>
         </div>
       )}
 
       <div className="colleagues-layout">
-        <section className="colleagues-card">
+        <section className="colleagues-card glass">
           <h3>Найти коллегу</h3>
           <div className="colleagues-search">
-            <span>@</span>
+            <SearchIcon />
             <input
               type="text"
               value={query}
               onChange={(e) => setQuery(e.target.value)}
-              placeholder="username"
+              placeholder="Поиск по @username"
               autoFocus
             />
           </div>
@@ -271,7 +274,7 @@ export const Colleagues = () => {
             )}
 
           {results.length > 0 && !searching && (
-            <ul className="colleagues-list">
+            <ul className="colleagues-list stagger">
               {results.map((user) => (
                 <UserRow key={user.id} user={user}>
                   <RelationActions
@@ -289,8 +292,15 @@ export const Colleagues = () => {
           )}
         </section>
 
-        <section className="colleagues-card">
-          <div className="colleagues-tabs">
+        <section className="colleagues-card glass">
+          <div className="colleagues-tabs" role="tablist">
+            {/* «капсула» сегментированного контрола, плавно едет к активной вкладке */}
+            <span
+              className="colleagues-tabs-indicator"
+              style={{
+                transform: `translateX(${["friends", "incoming", "outgoing"].indexOf(tab) * 100}%)`,
+              }}
+            />
             <button
               className={tab === "friends" ? "active" : ""}
               onClick={() => setTab("friends")}
@@ -320,7 +330,7 @@ export const Colleagues = () => {
                 У вас пока нет коллег. Найдите их по username через поиск.
               </p>
             ) : (
-              <ul className="colleagues-list">
+              <ul className="colleagues-list stagger">
                 {friends.map((friend) => (
                   <UserRow
                     key={friend.id}
@@ -343,7 +353,7 @@ export const Colleagues = () => {
             (requests.incoming.length === 0 ? (
               <p className="colleagues-empty">Новых заявок нет</p>
             ) : (
-              <ul className="colleagues-list">
+              <ul className="colleagues-list stagger">
                 {requests.incoming.map((request) => (
                   <UserRow
                     key={request.id}
@@ -373,7 +383,7 @@ export const Colleagues = () => {
             (requests.outgoing.length === 0 ? (
               <p className="colleagues-empty">Вы никому не отправляли заявок</p>
             ) : (
-              <ul className="colleagues-list">
+              <ul className="colleagues-list stagger">
                 {requests.outgoing.map((request) => (
                   <UserRow
                     key={request.id}

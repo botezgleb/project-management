@@ -9,6 +9,7 @@ import linkedInLogo from "../../assets/linkedin.svg";
 export const Footer = () => {
   return (
     <footer className="footer">
+      <div className="footer-inner glass">
       <div className="footer-content">
         <div className="footer-logo">
           <Link to="/">
@@ -89,6 +90,7 @@ export const Footer = () => {
           <Link to="/privacy">Политика конфиденциальности</Link>
           <Link to="/terms">Условия использования</Link>
         </div>
+      </div>
       </div>
     </footer>
   );

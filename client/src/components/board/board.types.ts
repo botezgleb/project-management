@@ -8,13 +8,14 @@ export interface ColumnWithTasks extends Column {
 export type BoardAction =
   | { type: "SET_COLUMNS"; payload: ColumnWithTasks[] }
   | { type: "ADD_COLUMN"; payload: Column }
-  | { type: "UPDATE_COLUMN"; payload: { id: number; name: string } }
+  | { type: "UPDATE_COLUMN"; payload: Partial<Column> & { id: number } }
   | { type: "DELETE_COLUMN"; payload: number }
   | { type: "REORDER_COLUMNS"; payload: Column[] }
   | { type: "ADD_TASK"; payload: { columnId: number; task: Task } }
   | { type: "UPDATE_TASK"; payload: { columnId: number; task: Task } }
   | { type: "DELETE_TASK"; payload: { columnId: number; taskId: number } }
   | { type: "REORDER_TASKS"; payload: { columnId: number; tasks: Task[] } }
+  | { type: "UPSERT_TASKS"; payload: Task[] }
   | { type: "SET_LOADING"; payload: boolean }
   | { type: "SET_ERROR"; payload: string | null }
   | { type: "SET_ADDING"; payload: boolean }
